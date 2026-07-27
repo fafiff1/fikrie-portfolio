@@ -1,0 +1,84 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ArrowRight, MapPin } from "lucide-react";
+
+export default function Hero() {
+  return (
+    <section id="home" className="min-h-screen flex items-center justify-center pt-20 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] -z-10" />
+      
+      <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-surface-border mb-6">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <span className="text-xs font-medium text-gray-300">Quality Engineer</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6">
+            Hi, I&apos;m <span className="text-primary">Fahreza</span>
+            <br />
+            Building Quality.
+          </h1>
+          
+          <p className="text-lg text-gray-400 mb-8 max-w-lg leading-relaxed">
+            Originally from Jakarta, Indonesia, now calling Melbourne home for over 20 years. I ensure software excellence while being a proud husband and father.
+          </p>
+          
+          <div className="flex flex-wrap items-center gap-4">
+            <a
+              href="#portfolio"
+              className="px-8 py-3 bg-primary text-white font-medium rounded hover:bg-primary-hover transition-colors flex items-center gap-2 group"
+            >
+              View My Work
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </a>
+            <a
+              href="#contact"
+              className="px-8 py-3 bg-transparent border border-surface-border text-white font-medium rounded hover:bg-surface transition-colors"
+            >
+              Contact Me
+            </a>
+          </div>
+          
+          <div className="mt-12 flex items-center gap-4 text-sm text-gray-500">
+            <MapPin size={16} className="text-primary" />
+            <span>Based in Melbourne, Australia</span>
+          </div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative"
+        >
+          {/* Placeholder for Hero Image */}
+          <div className="aspect-[4/5] md:aspect-square bg-surface border border-surface-border rounded-2xl overflow-hidden relative group">
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+            <img 
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+              alt="Fahreza" 
+              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+            />
+            
+            {/* Floating Badge */}
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-md border border-surface-border p-4 rounded-xl z-20"
+            >
+              <p className="text-2xl font-bold text-white">20+</p>
+              <p className="text-xs text-gray-400">Years in Melbourne</p>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
