@@ -1,0 +1,65 @@
+{
+  "rafael": [
+    {
+      "id": "rafael-video-1",
+      "type": "video",
+      "title": "Rafa as a toddler",
+      "src": "/family/rafael/Rafa_todler1.mp4",
+      "poster": "/family/rafael/rafa-profile.jpg"
+    },
+    {
+      "id": "rafael-video-2",
+      "type": "video",
+      "title": "Soccer training session",
+      "src": "/family/rafael/Rafa_soccer_train.mp4",
+      "poster": "/family/rafael/rafa-soccer-poster.jpg"
+    }
+  ],
+  "mikhail": [
+    {
+      "id": "mikhail-1",
+      "type": "photo",
+      "title": "Basketball game day",
+      "src": "https://images.unsplash.com/photo-1546519638-68e109498ffc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "mikhail-3",
+      "type": "video",
+      "title": "Basketball skills showcase",
+      "src": "https://www.w3schools.com/html/mov_bbb.mp4",
+      "poster": "https://images.unsplash.com/photo-1504450758481-7338eba7524a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "mikhail-4",
+      "type": "photo",
+      "title": "Swimming with friends",
+      "src": "https://images.unsplash.com/photo-1519315901367-f34ff9154487?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "mikhail-5",
+      "type": "photo",
+      "title": "Team photo after the win",
+      "src": "https://images.unsplash.com/photo-1546519638-68e109498ffc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    }
+  ],
+  "mira": [
+    {
+      "id": "mira-5",
+      "type": "photo",
+      "title": "Exploring Bali in traditional dress",
+      "src": "/family/mira/Mira_5.png"
+    },
+    {
+      "id": "mira-1",
+      "type": "photo",
+      "title": "Portrait in blue hijab",
+      "src": "/family/mira/Mira_1.png"
+    },
+    {
+      "id": "mira-2",
+      "type": "photo",
+      "title": "Family moment",
+      "src": "/family/mira/Mira_2.png"
+    }
+  ]
+}

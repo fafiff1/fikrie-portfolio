@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Fikrie",
+    "email": "miraputrihandoko@yahoo.com",
+    "subject": "Test",
+    "message": "This is tes from Cursor developed by Fikrie",
+    "id": "msg-1785230383480",
+    "createdAt": "2026-07-28T09:19:43.480Z"
+  },
+  {
+    "name": "Fik",
+    "email": "viccars_boy@hotmail.com",
+    "subject": "Test",
+    "message": "Hello please review my work",
+    "id": "msg-1785230307494",
+    "createdAt": "2026-07-28T09:18:27.494Z"
+  },
+  {
+    "name": "Fik",
+    "email": "viccars_boy@hotmail.com",
+    "subject": "Test",
+    "message": "Hello please review my work",
+    "id": "msg-1785230264315",
+    "createdAt": "2026-07-28T09:17:44.315Z"
+  },
+  {
+    "name": "Fik",
+    "email": "viccars_boy@hotmail.com",
+    "subject": "tesss",
+    "message": "hellofgfgfgf",
+    "id": "msg-1785216036794",
+    "createdAt": "2026-07-28T05:20:36.794Z"
+  },
+  {
+    "name": "Fik",
+    "email": "viccars_boy@hotmail.com",
+    "subject": "test",
+    "message": "Test Fikrie",
+    "id": "msg-1785215950480",
+    "createdAt": "2026-07-28T05:19:10.480Z"
+  }
+]
