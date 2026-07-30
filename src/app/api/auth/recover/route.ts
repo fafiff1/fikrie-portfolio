@@ -22,17 +22,23 @@ export async function POST(request: Request) {
     const recoveryEmail = getRecoveryEmail();
     if (!recoveryEmail) {
       return NextResponse.json(
-        { error: "Login recovery is not configured on this site." },
+        { error: "Login recovery isn't set up yet. Please contact the site owner." },
         { status: 503 }
       );
     }
 
     if (typeof email !== "string" || !isValidEmail(email.trim())) {
-      return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
+        { status: 400 }
+      );
     }
 
     if (typeof type !== "string" || !isRecoveryType(type)) {
-      return NextResponse.json({ error: "Please choose what to recover." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Please choose whether you need your username, password, or both." },
+        { status: 400 }
+      );
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -42,13 +48,13 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         message:
-          "If that email is registered for recovery, you will receive your login details shortly.",
+          "If that email is registered, your login details are on the way. Check your inbox in a minute or two.",
       });
     }
 
     return NextResponse.json({
       success: true,
-      message: "Recovery email sent. Check your inbox.",
+      message: "Done! Your login details have been sent. Check your inbox.",
       clientEmailDelivery: {
         receiverEmail: recoveryEmail,
         subject: buildRecoveryEmailSubject(type),
@@ -58,7 +64,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Login recovery error:", error);
     return NextResponse.json(
-      { error: "Could not send recovery email. Please try again later." },
+      { error: "We couldn't send the email right now. Please try again in a moment." },
       { status: 500 }
     );
   }
