@@ -84,7 +84,7 @@ export default function LifestylePageContent({
         >
           {activeSection === "blog" ? (
             <BlogSection
-              category={category}
+              apiPath={`/api/lifestyle/${category}/blogs`}
               sectionTitle={meta.title}
               blogs={blogs}
               isLoggedIn={isLoggedIn}

@@ -4,7 +4,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Heart, Activity, Map, ChefHat, Trophy } from "lucide-react";
 import FamilyMediaGallery from "@/components/FamilyMediaGallery";
-import type { MediaItem, FamilyMemberId } from "@/lib/family-media";
+import BlogSection from "@/components/BlogSection";
+import type { MediaItem, FamilyMemberId } from "@/lib/family-media-shared";
+import type { BlogPost } from "@/lib/lifestyle-shared";
 
 type FamilyMember = {
   id: FamilyMemberId;
@@ -59,14 +61,31 @@ const familyMembers: FamilyMember[] = [
 
 type FamilyPageContentProps = {
   initialMedia: Record<FamilyMemberId, MediaItem[]>;
+  initialBlogs: Record<FamilyMemberId, BlogPost[]>;
   isLoggedIn: boolean;
 };
 
-export default function FamilyPageContent({ initialMedia, isLoggedIn }: FamilyPageContentProps) {
+export default function FamilyPageContent({
+  initialMedia,
+  initialBlogs,
+  isLoggedIn,
+}: FamilyPageContentProps) {
   const [mediaByMember, setMediaByMember] = useState(initialMedia);
+  const [blogsByMember, setBlogsByMember] = useState(initialBlogs);
+  const [activeSectionByMember, setActiveSectionByMember] = useState<
+    Record<FamilyMemberId, "blog" | "media">
+  >({
+    rafael: "blog",
+    mikhail: "blog",
+    mira: "blog",
+  });
 
   const updateMemberMedia = (memberId: FamilyMemberId, media: MediaItem[]) => {
     setMediaByMember((prev) => ({ ...prev, [memberId]: media }));
+  };
+
+  const updateMemberBlogs = (memberId: FamilyMemberId, blogs: BlogPost[]) => {
+    setBlogsByMember((prev) => ({ ...prev, [memberId]: blogs }));
   };
 
   return (
@@ -159,30 +178,60 @@ export default function FamilyPageContent({ initialMedia, isLoggedIn }: FamilyPa
               transition={{ delay: index * 0.1 }}
               className="bg-surface border border-surface-border rounded-2xl p-6 md:p-10"
             >
-              <div className="flex flex-col md:flex-row md:items-center gap-6 mb-2">
-                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary shrink-0">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover"
-                  />
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary shrink-0">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-white">
+                      {member.name}
+                      <span className="text-primary">.</span>
+                    </h2>
+                    <p className="text-gray-400">{member.role}</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-white">
-                    {member.name}
-                    <span className="text-primary">.</span>
-                  </h2>
-                  <p className="text-gray-400">{member.role}</p>
+
+                <div className="flex items-center gap-2 p-1 bg-black border border-surface-border rounded-lg self-start">
+                  {(["blog", "media"] as const).map((section) => (
+                    <button
+                      key={section}
+                      onClick={() =>
+                        setActiveSectionByMember((prev) => ({ ...prev, [member.id]: section }))
+                      }
+                      className={`px-5 py-2 text-sm font-medium rounded-md transition-colors capitalize ${
+                        activeSectionByMember[member.id] === section
+                          ? "bg-primary text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {section === "blog" ? "Blog" : "Photos & Videos"}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <FamilyMediaGallery
-                memberId={member.id}
-                memberName={member.name}
-                media={mediaByMember[member.id]}
-                isLoggedIn={isLoggedIn}
-                onMediaChange={(media) => updateMemberMedia(member.id, media)}
-              />
+              {activeSectionByMember[member.id] === "blog" ? (
+                <BlogSection
+                  apiPath={`/api/family/${member.id}/blogs`}
+                  sectionTitle={member.name}
+                  blogs={blogsByMember[member.id]}
+                  isLoggedIn={isLoggedIn}
+                  onBlogsChange={(blogs) => updateMemberBlogs(member.id, blogs)}
+                />
+              ) : (
+                <FamilyMediaGallery
+                  memberId={member.id}
+                  memberName={member.name}
+                  media={mediaByMember[member.id]}
+                  isLoggedIn={isLoggedIn}
+                  onMediaChange={(media) => updateMemberMedia(member.id, media)}
+                />
+              )}
             </motion.section>
           ))}
         </div>

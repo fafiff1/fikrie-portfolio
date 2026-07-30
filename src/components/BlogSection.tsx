@@ -6,7 +6,7 @@ import { BookOpen, Plus, Trash2, Loader2, X, Calendar, Pencil } from "lucide-rea
 import type { BlogPost } from "@/lib/lifestyle-shared";
 
 type BlogSectionProps = {
-  category: string;
+  apiPath: string;
   sectionTitle: string;
   blogs: BlogPost[];
   isLoggedIn: boolean;
@@ -14,7 +14,7 @@ type BlogSectionProps = {
 };
 
 export default function BlogSection({
-  category,
+  apiPath,
   sectionTitle,
   blogs,
   isLoggedIn,
@@ -88,7 +88,7 @@ export default function BlogSection({
     }
 
     try {
-      const response = await fetch(`/api/lifestyle/${category}/blogs`, {
+      const response = await fetch(apiPath, {
         method: isEditing ? "PATCH" : "POST",
         body: formData,
       });
@@ -115,7 +115,7 @@ export default function BlogSection({
     setError(null);
 
     try {
-      const response = await fetch(`/api/lifestyle/${category}/blogs`, {
+      const response = await fetch(apiPath, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blogId: blog.id }),
