@@ -1,8 +1,12 @@
-import { VALID_USERNAME, VALID_PASSWORD } from "@/lib/auth";
+import type { StoredUser } from "@/lib/users";
 
 export type RecoveryType = "username" | "password" | "both";
 
-export function buildRecoveryEmailBody(type: RecoveryType): string {
+export function isRecoveryType(value: string): value is RecoveryType {
+  return value === "username" || value === "password" || value === "both";
+}
+
+export function buildRecoveryEmailBody(user: StoredUser, type: RecoveryType): string {
   const lines = [
     "Portfolio login recovery",
     "",
@@ -11,11 +15,15 @@ export function buildRecoveryEmailBody(type: RecoveryType): string {
   ];
 
   if (type === "username" || type === "both") {
-    lines.push(`Username: ${VALID_USERNAME}`);
+    lines.push(`Username: ${user.username}`);
   }
 
   if (type === "password" || type === "both") {
-    lines.push(`Password: ${VALID_PASSWORD}`);
+    lines.push(
+      "",
+      "For security, your password cannot be sent by email.",
+      "If you forgot it, please contact the site owner or create a new account from the login page."
+    );
   }
 
   lines.push(
@@ -30,10 +38,6 @@ export function buildRecoveryEmailBody(type: RecoveryType): string {
 
 export function buildRecoveryEmailSubject(type: RecoveryType): string {
   if (type === "username") return "Your portfolio username";
-  if (type === "password") return "Your portfolio password";
+  if (type === "password") return "Portfolio password help";
   return "Your portfolio login details";
-}
-
-export function isRecoveryType(value: string): value is RecoveryType {
-  return value === "username" || value === "password" || value === "both";
 }

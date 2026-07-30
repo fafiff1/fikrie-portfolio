@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE, SESSION_VALUE } from "@/lib/auth";
+import { SESSION_COOKIE, SESSION_VALUE } from "@/lib/auth-shared";
 
 const PUBLIC_PATHS = ["/login"];
 

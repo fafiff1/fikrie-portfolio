@@ -5,10 +5,7 @@ import {
   buildRecoveryEmailSubject,
   isRecoveryType,
 } from "@/lib/auth-recovery";
-
-function getRecoveryEmail(): string | null {
-  return process.env.CONTACT_RECEIVER_EMAIL?.trim() || null;
-}
+import { findUserByRecoveryEmail } from "@/lib/users";
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    const recoveryEmail = getRecoveryEmail();
+    const recoveryEmail = process.env.CONTACT_RECEIVER_EMAIL?.trim();
     if (!recoveryEmail) {
       return NextResponse.json(
         { error: "Login recovery isn't set up yet. Please contact the site owner." },
@@ -41,10 +38,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedRecovery = recoveryEmail.toLowerCase();
+    const user = await findUserByRecoveryEmail(email.trim());
 
-    if (normalizedEmail !== normalizedRecovery) {
+    if (!user) {
       return NextResponse.json({
         success: true,
         message:
@@ -56,9 +52,9 @@ export async function POST(request: Request) {
       success: true,
       message: "Done! Your login details have been sent. Check your inbox.",
       clientEmailDelivery: {
-        receiverEmail: recoveryEmail,
+        receiverEmail: email.trim(),
         subject: buildRecoveryEmailSubject(type),
-        body: buildRecoveryEmailBody(type),
+        body: buildRecoveryEmailBody(user, type),
       },
     });
   } catch (error) {
