@@ -12,3 +12,20 @@ export const ROUTES = {
   portfolio: "/portfolio",
   reviews: "/reviews",
 } as const;
+
+export const FAMILY_MEMBERS = {
+  rafael: {
+    id: "rafael",
+    name: "Rafael",
+    blogsApiPath: "/api/family/rafael/blogs",
+  },
+} as const;
+
+export function uniqueRafaelBlog() {
+  const suffix = Date.now();
+
+  return {
+    title: `Rafael soccer recap ${suffix}`,
+    content: `Playwright test blog for Rafael. U12 Glen Waverley training session recap ${suffix}.`,
+  };
+}

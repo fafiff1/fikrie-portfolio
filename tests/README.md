@@ -40,11 +40,10 @@ Optional environment overrides:
 ```bash
 PLAYWRIGHT_USERNAME=fafiff
 PLAYWRIGHT_PASSWORD=password
-PLAYWRIGHT_PORT=3000
-PLAYWRIGHT_BASE_URL=http://localhost:3000
+PLAYWRIGHT_PORT=3001
 ```
 
-## Run tests
+Tests start a dedicated dev server on port **3001** (webpack) so they do not conflict with a Turbopack dev server you may already have running on port 3000.
 
 ```bash
 # Run all e2e tests (starts dev server automatically)
@@ -91,11 +90,12 @@ If install fails with `self-signed certificate in certificate chain`:
 - Add new specs under `tests/e2e/`
 - Reuse page objects from `tests/pages/`
 - Use the `authenticatedPage` fixture from `tests/fixtures/auth.fixture.ts` for logged-in flows
+- Every test auto-teardown clears cookies, storage, and resets the page via `tests/fixtures/test.fixture.ts`
 
 Example:
 
 ```typescript
-import { test, expect } from "../fixtures/auth.fixture";
+import { test, expect } from "../fixtures/test.fixture";
 
 test("example authenticated test", async ({ page, authenticatedPage }) => {
   void authenticatedPage;

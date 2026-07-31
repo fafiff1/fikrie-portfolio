@@ -1,12 +1,9 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  experimental: {
-    // @ts-expect-error
-    turbopack: {
-      root: ".",
-    },
+  turbopack: {
+    root: path.resolve(__dirname),
   },
 };
 

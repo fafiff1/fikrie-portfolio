@@ -1,20 +1,23 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = process.env.PLAYWRIGHT_PORT ?? "3000";
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
+const PORT = process.env.PLAYWRIGHT_PORT ?? "3001";
+const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  timeout: 60_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 2,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "off",
+    storageState: { cookies: [], origins: [] },
+    navigationTimeout: 30_000,
   },
   projects: [
     {
@@ -36,7 +39,8 @@ export default defineConfig({
     // },
   ],
   webServer: {
-    command: `npm run dev -- --port ${PORT}`,
+    // Webpack avoids intermittent Turbopack manifest errors on Windows during e2e runs.
+    command: `npm run dev -- --port ${PORT} --webpack`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

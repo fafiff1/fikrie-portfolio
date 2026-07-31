@@ -1,8 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures/test.fixture";
 import { LoginPage } from "../pages";
 import { ROUTES } from "../helpers/test-data";
 
 test.describe("Login page", () => {
+  test.describe.configure({ mode: "serial" });
+
   test("shows sign-in form for unauthenticated visitors", async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
@@ -12,7 +14,7 @@ test.describe("Login page", () => {
   });
 
   test("redirects unauthenticated users from protected routes", async ({ page }) => {
-    await page.goto(ROUTES.family);
+    await page.goto(ROUTES.family, { waitUntil: "domcontentloaded" });
 
     await expect(page).toHaveURL(/\/login\?from=/);
     await expect(page.getByRole("heading", { name: "Welcome Back" })).toBeVisible();
