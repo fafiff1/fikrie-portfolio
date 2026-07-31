@@ -63,9 +63,9 @@ export default function Hero() {
           <div className="aspect-[4/5] md:aspect-square bg-surface border border-surface-border rounded-2xl overflow-hidden relative group">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
             <img 
-              src="/profile/fikrie-profile.png" 
+              src="/profile/fikrie-profile-sketch.png" 
               alt="Fahreza" 
-              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+              className="w-full h-full object-cover transition-all duration-500"
             />
             
             {/* Floating Badge */}
