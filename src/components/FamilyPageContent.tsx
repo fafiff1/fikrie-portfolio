@@ -50,7 +50,7 @@ const familyMembers: FamilyMember[] = [
     role: "Wife",
     description:
       "Mira is the heart of our family. She has a deep love for traveling, hiking, and exploring different places around the world, always planning our next great adventure.",
-    image: "/family/mira/Mira_5.png",
+    image: "/family/mira/Mira_sketch.png",
     hobbies: [
       { icon: <Map size={18} />, text: "Traveling" },
       { icon: <Activity size={18} />, text: "Hiking" },

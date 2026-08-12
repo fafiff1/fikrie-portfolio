@@ -105,6 +105,78 @@ export async function verifyUserCredentials(
   return verifyPassword(password, user.passwordHash);
 }
 
+export async function getPrimaryUser(): Promise<StoredUser | null> {
+  const users = await readUsers();
+  return users.find((user) => user.username.toLowerCase() === DEFAULT_USERNAME) ?? users[0] ?? null;
+}
+
+export async function updatePrimaryUserAccount(updates: {
+  username?: string;
+  recoveryEmail?: string;
+}): Promise<StoredUser> {
+  const users = await readUsers();
+  const index = users.findIndex((user) => user.username.toLowerCase() === DEFAULT_USERNAME);
+  const targetIndex = index === -1 ? 0 : index;
+
+  if (targetIndex === -1 || !users[targetIndex]) {
+    throw new Error("No user account found.");
+  }
+
+  if (updates.username) {
+    const trimmedUsername = updates.username.trim();
+    if (!isValidUsername(trimmedUsername)) {
+      throw new Error("Username must be 3–32 characters and use letters, numbers, or underscores.");
+    }
+
+    const exists = users.some(
+      (user, userIndex) =>
+        userIndex !== targetIndex &&
+        user.username.toLowerCase() === trimmedUsername.toLowerCase()
+    );
+
+    if (exists) {
+      throw new Error("That username is already taken.");
+    }
+
+    users[targetIndex].username = trimmedUsername;
+  }
+
+  if (typeof updates.recoveryEmail === "string") {
+    users[targetIndex].recoveryEmail = updates.recoveryEmail.trim() || undefined;
+  }
+
+  await writeUsers(users);
+  return users[targetIndex];
+}
+
+export async function updatePrimaryUserPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const user = await getPrimaryUser();
+  if (!user) {
+    throw new Error("No user account found.");
+  }
+
+  const valid = await verifyPassword(currentPassword, user.passwordHash);
+  if (!valid) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  if (!isValidPassword(newPassword)) {
+    throw new Error("New password must be at least 6 characters.");
+  }
+
+  const users = await readUsers();
+  const index = users.findIndex((entry) => entry.id === user.id);
+  if (index === -1) {
+    throw new Error("No user account found.");
+  }
+
+  users[index].passwordHash = await hashPassword(newPassword);
+  await writeUsers(users);
+}
+
 export async function createUser(username: string, password: string): Promise<StoredUser> {
   const trimmedUsername = username.trim();
 

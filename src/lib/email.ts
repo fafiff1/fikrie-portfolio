@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getEffectiveContactEmail } from "@/lib/site-config";
 
 export type ContactEmailPayload = {
   name: string;
@@ -20,12 +21,12 @@ export type EmailDelivery =
   | { mode: "server" }
   | { mode: "client"; receiverEmail: string };
 
-function getSmtpConfig(): SmtpConfig | null {
+function getSmtpConfig(receiverEmail?: string | null): SmtpConfig | null {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || "587");
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  const to = process.env.CONTACT_RECEIVER_EMAIL;
+  const to = receiverEmail || process.env.CONTACT_RECEIVER_EMAIL;
   const from = process.env.SMTP_FROM || user;
 
   if (!host || !user || !pass || !to || !from) {
@@ -35,17 +36,18 @@ function getSmtpConfig(): SmtpConfig | null {
   return { host, port, user, pass, to, from };
 }
 
-function getReceiverEmail(): string | null {
+function getEnvReceiverEmail(): string | null {
   const email = process.env.CONTACT_RECEIVER_EMAIL?.trim();
   return email || null;
 }
 
-export function getEmailDelivery(): EmailDelivery | null {
-  if (getSmtpConfig() || process.env.WEB3FORMS_ACCESS_KEY?.trim()) {
+export async function getEmailDelivery(): Promise<EmailDelivery | null> {
+  const receiverEmail = await getEffectiveContactEmail();
+
+  if (getSmtpConfig(receiverEmail) || process.env.WEB3FORMS_ACCESS_KEY?.trim()) {
     return { mode: "server" };
   }
 
-  const receiverEmail = getReceiverEmail();
   if (receiverEmail) {
     return { mode: "client", receiverEmail };
   }
@@ -53,12 +55,13 @@ export function getEmailDelivery(): EmailDelivery | null {
   return null;
 }
 
-export function isEmailConfigured(): boolean {
-  return getEmailDelivery() !== null;
+export async function isEmailConfigured(): Promise<boolean> {
+  return (await getEmailDelivery()) !== null;
 }
 
 export async function sendContactEmail(payload: ContactEmailPayload): Promise<void> {
-  const smtpConfig = getSmtpConfig();
+  const receiverEmail = await getEffectiveContactEmail();
+  const smtpConfig = getSmtpConfig(receiverEmail);
 
   if (smtpConfig) {
     await sendViaSmtp(payload, smtpConfig);
@@ -66,7 +69,7 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
   }
 
   if (process.env.WEB3FORMS_ACCESS_KEY?.trim()) {
-    await sendViaWeb3Forms(payload);
+    await sendViaWeb3Forms(payload, receiverEmail || getEnvReceiverEmail());
     return;
   }
 
@@ -96,7 +99,10 @@ async function sendViaSmtp(payload: ContactEmailPayload, config: SmtpConfig): Pr
   });
 }
 
-async function sendViaWeb3Forms(payload: ContactEmailPayload): Promise<void> {
+async function sendViaWeb3Forms(
+  payload: ContactEmailPayload,
+  receiverEmail: string | null
+): Promise<void> {
   const response = await fetch("https://api.web3forms.com/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -107,6 +113,7 @@ async function sendViaWeb3Forms(payload: ContactEmailPayload): Promise<void> {
       subject: `[Portfolio Contact] ${payload.subject}`,
       message: payload.message,
       replyto: payload.email,
+      to: receiverEmail || undefined,
     }),
   });
 
@@ -150,4 +157,12 @@ function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+export function getEmailProviderStatus() {
+  return {
+    smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+    web3formsConfigured: Boolean(process.env.WEB3FORMS_ACCESS_KEY?.trim()),
+    envReceiverEmail: getEnvReceiverEmail(),
+  };
 }

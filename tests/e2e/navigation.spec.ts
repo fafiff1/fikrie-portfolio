@@ -63,6 +63,6 @@ test.describe("Authenticated navigation", () => {
 
     await navbar.goTo("Portfolio");
     await expect(page).toHaveURL(ROUTES.portfolio);
-    await expect(page.getByRole("heading", { name: /Featured /i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Professional /i })).toBeVisible();
   });
 });

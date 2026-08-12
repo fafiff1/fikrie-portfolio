@@ -1,0 +1,424 @@
+{
+  "info": {
+    "_postman_id": "fikrie-portfolio-api",
+    "name": "Fikrie Portfolio API",
+    "description": "REST API collection for the Fikrie Portfolio Next.js app.\n\n## Authentication\nMost write endpoints require the session cookie:\n- **Name:** `portfolio_session`\n- **Value:** `authenticated`\n\nLog in at `/login` in the browser, then copy the cookie into the collection variable or use Postman's cookie jar.\n\n## Base URL\nDefault: `http://localhost:3000` (change `baseUrl` variable if using port 3001).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "member", "value": "rafael" },
+    { "key": "category", "value": "hobbies" },
+    { "key": "sectionId", "value": "syncsoft" },
+    { "key": "blogId", "value": "" },
+    { "key": "mediaId", "value": "" },
+    { "key": "imageId", "value": "" },
+    { "key": "reviewId", "value": "" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "portfolio_session", "type": "string" },
+      { "key": "value", "value": "authenticated", "type": "string" },
+      { "key": "in", "value": "cookie", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Request Login Recovery",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"you@example.com\",\n  \"type\": \"both\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/recover"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Submit Contact Form",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"subject\": \"Project Inquiry\",\n  \"message\": \"Hello, I would like to discuss a quality engineering project.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/contact"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Family",
+      "item": [
+        {
+          "name": "Get All Family Media",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/family/media"
+          }
+        },
+        {
+          "name": "Upload Family Media",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "memberId", "value": "{{member}}", "type": "text" },
+                { "key": "title", "value": "Training session", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/family/media"
+          }
+        },
+        {
+          "name": "Delete Family Media",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{member}}\",\n  \"mediaId\": \"{{mediaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/family/media"
+          }
+        },
+        {
+          "name": "Get Family Blogs",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/family/{{member}}/blogs"
+          }
+        },
+        {
+          "name": "Publish Family Blog",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Weekend soccer recap", "type": "text" },
+                { "key": "content", "value": "Great training session with the U12 team this weekend.", "type": "text" },
+                { "key": "cover", "type": "file", "src": "", "disabled": true }
+              ]
+            },
+            "url": "{{baseUrl}}/api/family/{{member}}/blogs"
+          }
+        },
+        {
+          "name": "Update Family Blog",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "blogId", "value": "{{blogId}}", "type": "text" },
+                { "key": "title", "value": "Updated blog title", "type": "text" },
+                { "key": "content", "value": "Updated blog content with at least twenty characters.", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/family/{{member}}/blogs"
+          }
+        },
+        {
+          "name": "Delete Family Blog",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blogId\": \"{{blogId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/family/{{member}}/blogs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lifestyle",
+      "item": [
+        {
+          "name": "Get Lifestyle Blogs",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/blogs"
+          }
+        },
+        {
+          "name": "Publish Lifestyle Blog",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "My hiking adventure", "type": "text" },
+                { "key": "content", "value": "A wonderful day exploring the trails near Melbourne.", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/blogs"
+          }
+        },
+        {
+          "name": "Update Lifestyle Blog",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "blogId", "value": "{{blogId}}", "type": "text" },
+                { "key": "title", "value": "Updated title", "type": "text" },
+                { "key": "content", "value": "Updated content with enough characters to pass validation.", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/blogs"
+          }
+        },
+        {
+          "name": "Delete Lifestyle Blog",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blogId\": \"{{blogId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/blogs"
+          }
+        },
+        {
+          "name": "Get Lifestyle Media",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/media"
+          }
+        },
+        {
+          "name": "Upload Lifestyle Media",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "title", "value": "Travel photo", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/media"
+          }
+        },
+        {
+          "name": "Delete Lifestyle Media",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"{{mediaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/lifestyle/{{category}}/media"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Portfolio",
+      "item": [
+        {
+          "name": "Get All Portfolio Sections",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/portfolio"
+          }
+        },
+        {
+          "name": "Update Portfolio Section",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"2012 – 2015\",\n  \"company\": \"Syncsoft Pty Ltd\",\n  \"role\": \"Quality Engineer\",\n  \"description\": \"Started my quality engineering career at Syncsoft, building foundational skills in manual and automated testing.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/portfolio/{{sectionId}}"
+          }
+        },
+        {
+          "name": "Upload Portfolio Section Image",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "caption", "value": "Project screenshot", "type": "text", "disabled": true }
+              ]
+            },
+            "url": "{{baseUrl}}/api/portfolio/{{sectionId}}/media"
+          }
+        },
+        {
+          "name": "Delete Portfolio Section Image",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageId\": \"{{imageId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/portfolio/{{sectionId}}/media"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Site Content",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/settings/content"
+          }
+        },
+        {
+          "name": "Update Site Content",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hero\": {\n    \"headline\": \"Building Quality.\",\n    \"bio\": \"Originally from Jakarta, Indonesia, now calling Melbourne home for over 20 years.\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/settings/content"
+          }
+        },
+        {
+          "name": "Get Site Config",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/settings/config"
+          }
+        },
+        {
+          "name": "Update Site Config",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contactReceiverEmail\": \"you@example.com\",\n  \"saveContactMessages\": true,\n  \"allowRegistration\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/settings/config"
+          }
+        },
+        {
+          "name": "Get Account Info",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/settings/account"
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"fafiff\",\n  \"recoveryEmail\": \"you@example.com\",\n  \"currentPassword\": \"password\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/settings/account"
+          }
+        },
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/settings/profile-image"
+          }
+        },
+        {
+          "name": "Get Reviews",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/settings/reviews"
+          }
+        },
+        {
+          "name": "Add Review",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Jane Smith", "type": "text" },
+                { "key": "role", "value": "Product Manager", "type": "text" },
+                { "key": "company", "value": "TechFlow", "type": "text" },
+                { "key": "content", "value": "Excellent attention to detail and quality engineering expertise.", "type": "text" },
+                { "key": "imageUrl", "value": "https://example.com/photo.jpg", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/settings/reviews"
+          }
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "reviewId", "value": "{{reviewId}}", "type": "text" },
+                { "key": "name", "value": "Jane Smith", "type": "text" },
+                { "key": "role", "value": "Product Manager", "type": "text" },
+                { "key": "company", "value": "TechFlow", "type": "text" },
+                { "key": "content", "value": "Updated review content with enough characters.", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/settings/reviews"
+          }
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"{{reviewId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/settings/reviews"
+          }
+        }
+      ]
+    }
+  ]
+}

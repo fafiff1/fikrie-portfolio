@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, SESSION_VALUE } from "@/lib/auth-shared";
 import { verifyUserCredentials, createUser } from "@/lib/users";
+import { readSiteConfig } from "@/lib/site-config";
 
 export type LoginState = {
   error?: string;
@@ -58,6 +59,11 @@ export async function registerAction(
   _prevState: RegisterState,
   formData: FormData
 ): Promise<RegisterState> {
+  const siteConfig = await readSiteConfig();
+  if (!siteConfig.allowRegistration) {
+    return { error: "New account registration is currently disabled." };
+  }
+
   const username = (formData.get("username") as string)?.trim();
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;

@@ -1,0 +1,41 @@
+export type Review = {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  content: string;
+  image: string;
+};
+
+export const DEFAULT_REVIEWS: Review[] = [
+  {
+    id: "review-1",
+    name: "Sarah Jenkins",
+    role: "Product Manager",
+    company: "TechFlow",
+    content:
+      "Fahreza's attention to detail is unmatched. He caught edge cases we hadn't even considered. A true quality champion.",
+    image:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+  },
+  {
+    id: "review-2",
+    name: "David Chen",
+    role: "Lead Developer",
+    company: "InnovateX",
+    content:
+      "Working with Fahreza gave our team immense confidence in our releases. His automated testing frameworks saved us countless hours.",
+    image:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+  },
+  {
+    id: "review-3",
+    name: "Emma Williams",
+    role: "CTO",
+    company: "BuildRight",
+    content:
+      "Fahreza brings a rare combination of technical depth and strategic thinking to quality engineering. Highly recommended.",
+    image:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+  },
+];

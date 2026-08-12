@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
+import { readSiteContent } from "@/lib/site-content";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,16 +14,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Fahreza | Quality Engineer Portfolio",
-  description: "Modern portfolio of Fahreza, a Quality Engineer based in Melbourne.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const siteContent = await readSiteContent();
 
-export default function RootLayout({
+  return {
+    title: siteContent.seo.siteTitle,
+    description: siteContent.seo.siteDescription,
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const siteContent = await readSiteContent();
+
   return (
     <html
       lang="en"
@@ -34,7 +41,7 @@ export default function RootLayout({
           {children}
         </div>
         <footer className="border-t border-surface-border py-8 text-center text-gray-500 text-sm">
-          <p>© {new Date().getFullYear()} Fahreza. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {siteContent.footer.copyrightName}. All rights reserved.</p>
         </footer>
       </body>
     </html>

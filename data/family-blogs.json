@@ -1,5 +1,12 @@
 {
   "rafael": [],
-  "mikhail": [],
+  "mikhail": [
+    {
+      "id": "mikhail-blog-1785906724734",
+      "title": "Mikhail basketball recap 1785906717427",
+      "content": "Playwright test blog for Mikhail. U10 Glen Waverley training session recap 1785906717427.",
+      "createdAt": "2026-08-05T05:12:04.734Z"
+    }
+  ],
   "mira": []
 }

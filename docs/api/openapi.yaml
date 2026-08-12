@@ -1,0 +1,680 @@
+openapi: 3.0.3
+info:
+  title: Fikrie Portfolio API
+  description: |
+    REST API for the Fikrie Portfolio Next.js application.
+
+    ## Authentication
+    Most write endpoints require a session cookie:
+    - Cookie name: `portfolio_session`
+    - Cookie value: `authenticated`
+
+    Log in via the `/login` page (Server Action, not a REST endpoint) to obtain the cookie,
+    then include it in subsequent requests.
+
+    ## Data storage
+    - JSON data: `data/*.json`
+    - Uploaded files: `public/` subdirectories
+  version: 1.0.0
+  contact:
+    name: Fahreza Portfolio
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: http://localhost:3001
+    description: Playwright / alternate dev port
+
+tags:
+  - name: Auth
+  - name: Contact
+  - name: Family
+  - name: Lifestyle
+  - name: Portfolio
+  - name: Settings
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: portfolio_session
+      description: Set to `authenticated` after logging in
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    BlogPost:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+        coverImage: { type: string, nullable: true }
+      required: [id, title, content, createdAt]
+
+    MediaItem:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [photo, video] }
+        title: { type: string }
+        src: { type: string }
+        poster: { type: string, nullable: true }
+      required: [id, type, title, src]
+
+    PortfolioImage:
+      type: object
+      properties:
+        id: { type: string }
+        src: { type: string }
+        caption: { type: string, nullable: true }
+      required: [id, src]
+
+    PortfolioClient:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+      required: [id, name, description]
+
+    PortfolioSection:
+      type: object
+      properties:
+        id:
+          type: string
+          enum: [syncsoft, telstra-thealth, enett, dws, kmart]
+        period: { type: string }
+        company: { type: string }
+        role: { type: string, nullable: true }
+        description: { type: string }
+        images:
+          type: array
+          items: { $ref: '#/components/schemas/PortfolioImage' }
+        clients:
+          type: array
+          items: { $ref: '#/components/schemas/PortfolioClient' }
+      required: [id, period, company, description, images]
+
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string }
+        company: { type: string }
+        content: { type: string }
+        image: { type: string }
+      required: [id, name, role, company, content, image]
+
+    SiteContent:
+      type: object
+      properties:
+        hero:
+          type: object
+          properties:
+            roleBadge: { type: string }
+            name: { type: string }
+            headline: { type: string }
+            bio: { type: string }
+            location: { type: string }
+            profileImage: { type: string }
+            badgeValue: { type: string }
+            badgeLabel: { type: string }
+        about:
+          type: object
+          properties:
+            intro: { type: string }
+            stats:
+              type: array
+              items:
+                type: object
+                properties:
+                  title: { type: string }
+                  desc: { type: string }
+        contact:
+          type: object
+        seo:
+          type: object
+          properties:
+            siteTitle: { type: string }
+            siteDescription: { type: string }
+            brandName: { type: string }
+        footer:
+          type: object
+          properties:
+            copyrightName: { type: string }
+
+    SiteConfig:
+      type: object
+      properties:
+        contactReceiverEmail: { type: string }
+        saveContactMessages: { type: boolean }
+        allowRegistration: { type: boolean }
+
+    AccountInfo:
+      type: object
+      properties:
+        username: { type: string }
+        recoveryEmail: { type: string }
+        createdAt: { type: string, format: date-time }
+
+paths:
+  /api/auth/recover:
+    post:
+      tags: [Auth]
+      summary: Request login recovery email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                type: { type: string, enum: [username, password, both] }
+                website: { type: string, description: Honeypot field }
+              required: [email, type]
+      responses:
+        '200':
+          description: Recovery initiated (may include client-side email delivery payload)
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '503': { description: Recovery not configured }
+
+  /api/contact:
+    post:
+      tags: [Contact]
+      summary: Submit contact form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 2 }
+                email: { type: string, format: email }
+                subject: { type: string, minLength: 2 }
+                message: { type: string, minLength: 10 }
+                website: { type: string, description: Honeypot field }
+              required: [name, email, subject, message]
+      responses:
+        '200':
+          description: Message saved; may return clientEmailDelivery for FormSubmit
+        '400': { description: Validation error }
+        '503': { description: Email not configured }
+
+  /api/family/media:
+    get:
+      tags: [Family]
+      summary: Get all family media by member
+      responses:
+        '200':
+          description: Record of member ID to media array
+    post:
+      tags: [Family]
+      summary: Upload family media
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                memberId: { type: string, enum: [rafael, mikhail, mira] }
+                title: { type: string }
+              required: [file, memberId]
+      responses:
+        '200': { description: Returns item and updated media array for member }
+        '401': { description: Unauthorized }
+    delete:
+      tags: [Family]
+      summary: Delete family media
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberId: { type: string, enum: [rafael, mikhail, mira] }
+                mediaId: { type: string }
+              required: [memberId, mediaId]
+      responses:
+        '200': { description: Returns updated media array }
+        '401': { description: Unauthorized }
+        '404': { description: Media not found }
+
+  /api/family/{member}/blogs:
+    parameters:
+      - name: member
+        in: path
+        required: true
+        schema: { type: string, enum: [rafael, mikhail, mira] }
+    get:
+      tags: [Family]
+      summary: List blogs for a family member
+      responses:
+        '200':
+          description: Returns blogs array
+        '400': { description: Invalid member }
+    post:
+      tags: [Family]
+      summary: Publish a family blog
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 2 }
+                content: { type: string, minLength: 20 }
+                cover: { type: string, format: binary }
+              required: [title, content]
+      responses:
+        '200': { description: Returns blog and blogs array }
+        '401': { description: Unauthorized }
+    patch:
+      tags: [Family]
+      summary: Update a family blog
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                blogId: { type: string }
+                title: { type: string }
+                content: { type: string }
+                cover: { type: string, format: binary }
+                removeCover: { type: string, enum: ['true'] }
+              required: [blogId, title, content]
+      responses:
+        '200': { description: Returns updated blog and blogs array }
+        '401': { description: Unauthorized }
+        '404': { description: Blog not found }
+    delete:
+      tags: [Family]
+      summary: Delete a family blog
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blogId: { type: string }
+              required: [blogId]
+      responses:
+        '200': { description: Returns updated blogs array }
+        '401': { description: Unauthorized }
+        '404': { description: Blog not found }
+
+  /api/lifestyle/{category}/blogs:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema: { type: string, enum: [hobbies, sports, travel] }
+    get:
+      tags: [Lifestyle]
+      summary: List lifestyle blogs
+      responses:
+        '200': { description: Returns blogs array }
+    post:
+      tags: [Lifestyle]
+      summary: Publish lifestyle blog
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                content: { type: string }
+                cover: { type: string, format: binary }
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+    patch:
+      tags: [Lifestyle]
+      summary: Update lifestyle blog
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                blogId: { type: string }
+                title: { type: string }
+                content: { type: string }
+                cover: { type: string, format: binary }
+                removeCover: { type: string, enum: ['true'] }
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+    delete:
+      tags: [Lifestyle]
+      summary: Delete lifestyle blog
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blogId: { type: string }
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+
+  /api/lifestyle/{category}/media:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema: { type: string, enum: [hobbies, sports, travel] }
+    get:
+      tags: [Lifestyle]
+      summary: List lifestyle media
+      responses:
+        '200': { description: Returns media array }
+    post:
+      tags: [Lifestyle]
+      summary: Upload lifestyle media
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                title: { type: string }
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+    delete:
+      tags: [Lifestyle]
+      summary: Delete lifestyle media
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mediaId: { type: string }
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+
+  /api/portfolio:
+    get:
+      tags: [Portfolio]
+      summary: Get all portfolio career sections
+      responses:
+        '200':
+          description: Returns sections array
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sections:
+                    type: array
+                    items: { $ref: '#/components/schemas/PortfolioSection' }
+
+  /api/portfolio/{sectionId}:
+    parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [syncsoft, telstra-thealth, enett, dws, kmart]
+    patch:
+      tags: [Portfolio]
+      summary: Update portfolio section text
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                period: { type: string }
+                company: { type: string, minLength: 2 }
+                role: { type: string }
+                description: { type: string, minLength: 10 }
+                clients:
+                  type: array
+                  items: { $ref: '#/components/schemas/PortfolioClient' }
+              required: [company, description]
+      responses:
+        '200':
+          description: Returns section and sections array
+        '401': { description: Unauthorized }
+        '400': { description: Invalid section or validation error }
+
+  /api/portfolio/{sectionId}/media:
+    parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [syncsoft, telstra-thealth, enett, dws, kmart]
+    post:
+      tags: [Portfolio]
+      summary: Upload portfolio section image
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                caption: { type: string }
+              required: [file]
+      responses:
+        '200': { description: Returns image and updated section }
+        '401': { description: Unauthorized }
+    delete:
+      tags: [Portfolio]
+      summary: Delete portfolio section image
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imageId: { type: string }
+              required: [imageId]
+      responses:
+        '200': { description: Returns updated section }
+        '401': { description: Unauthorized }
+
+  /api/settings/content:
+    get:
+      tags: [Settings]
+      summary: Get site content (hero, about, contact, SEO)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content: { $ref: '#/components/schemas/SiteContent' }
+    patch:
+      tags: [Settings]
+      summary: Update site content
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SiteContent' }
+      responses:
+        '200': { description: Returns updated content }
+        '401': { description: Unauthorized }
+
+  /api/settings/config:
+    get:
+      tags: [Settings]
+      summary: Get site config and email delivery status
+      responses:
+        '200':
+          description: Returns config, effectiveContactEmail, emailConfigured, emailProviders
+    patch:
+      tags: [Settings]
+      summary: Update site config
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SiteConfig' }
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+
+  /api/settings/account:
+    get:
+      tags: [Settings]
+      summary: Get admin account info
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account: { $ref: '#/components/schemas/AccountInfo' }
+        '401': { description: Unauthorized }
+    patch:
+      tags: [Settings]
+      summary: Update account (username, recovery email, password)
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                recoveryEmail: { type: string, format: email }
+                currentPassword: { type: string }
+                newPassword: { type: string, minLength: 6 }
+      responses:
+        '200': { description: Returns updated account }
+        '401': { description: Unauthorized }
+        '400': { description: Validation error }
+
+  /api/settings/profile-image:
+    post:
+      tags: [Settings]
+      summary: Upload hero profile image
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+              required: [file]
+      responses:
+        '200': { description: Returns profileImage path and updated content }
+        '401': { description: Unauthorized }
+
+  /api/settings/reviews:
+    get:
+      tags: [Settings]
+      summary: List client reviews
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items: { $ref: '#/components/schemas/Review' }
+    post:
+      tags: [Settings]
+      summary: Add a client review
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 2 }
+                role: { type: string }
+                company: { type: string }
+                content: { type: string, minLength: 10 }
+                image: { type: string, format: binary }
+                imageUrl: { type: string }
+              required: [name, content]
+      responses:
+        '200': { description: Returns review and reviews array }
+        '401': { description: Unauthorized }
+    patch:
+      tags: [Settings]
+      summary: Update a client review
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                reviewId: { type: string }
+                name: { type: string }
+                role: { type: string }
+                company: { type: string }
+                content: { type: string }
+                image: { type: string, format: binary }
+                imageUrl: { type: string }
+              required: [reviewId]
+      responses:
+        '200': { description: Success }
+        '401': { description: Unauthorized }
+    delete:
+      tags: [Settings]
+      summary: Delete a client review
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reviewId: { type: string }
+              required: [reviewId]
+      responses:
+        '200': { description: Returns updated reviews array }
+        '401': { description: Unauthorized }

@@ -59,7 +59,7 @@ const recoveryOptions: {
 const inputClassName =
   "w-full bg-black border border-surface-border rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:border-primary transition-colors";
 
-export default function LoginForm() {
+export default function LoginForm({ allowRegistration = true }: { allowRegistration?: boolean }) {
   const searchParams = useSearchParams();
   const from = searchParams.get("from") || "/";
   const [mode, setMode] = useState<AuthMode>("sign-in");
@@ -219,16 +219,18 @@ export default function LoginForm() {
               </form>
 
               <div className="mt-6 pt-6 border-t border-surface-border text-center space-y-4">
-                <p className="text-sm text-gray-500">
-                  Don&apos;t have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setMode("sign-up")}
-                    className="text-primary hover:text-primary-hover transition-colors underline-offset-4 hover:underline"
-                  >
-                    Create one
-                  </button>
-                </p>
+                {allowRegistration && (
+                  <p className="text-sm text-gray-500">
+                    Don&apos;t have an account?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setMode("sign-up")}
+                      className="text-primary hover:text-primary-hover transition-colors underline-offset-4 hover:underline"
+                    >
+                      Create one
+                    </button>
+                  </p>
+                )}
 
                 <div>
                   <p className="text-sm text-gray-500 mb-3">Having trouble signing in?</p>

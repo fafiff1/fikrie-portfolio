@@ -90,8 +90,20 @@ export class FamilyPage {
     return this.page.locator(`#${FAMILY_MEMBERS.rafael.id}`);
   }
 
-  async publishRafaelBlog(title: string, content: string): Promise<string> {
-    const section = this.rafaelSection();
+  mikhailSection(): Locator {
+    return this.page.locator(`#${FAMILY_MEMBERS.mikhail.id}`);
+  }
+
+  miraSection(): Locator {    
+    return this.page.locator(`#${FAMILY_MEMBERS.mira.id}`);
+  }
+
+  async publishBlog(
+    section: Locator,
+    title: string,
+    content: string,
+    blogsApiPath: string,
+  ): Promise<string> {
     await section.scrollIntoViewIfNeeded();
 
     const writeBlog = section.getByRole("button", { name: "Write Blog" });
@@ -106,9 +118,9 @@ export class FamilyPage {
 
     const publishResponse = this.page.waitForResponse(
       (response) =>
-        response.url().includes(FAMILY_MEMBERS.rafael.blogsApiPath) &&
+        response.url().includes(blogsApiPath) &&
         response.request().method() === "POST" &&
-        response.ok()
+        response.ok(),
     );
     await section.getByRole("button", { name: "Publish Blog" }).click();
     const response = await publishResponse;
@@ -120,8 +132,51 @@ export class FamilyPage {
     return blog.id;
   }
 
+  async publishRafaelBlog(title: string, content: string): Promise<string> {
+    return this.publishBlog(
+      this.rafaelSection(),
+      title,
+      content,
+      FAMILY_MEMBERS.rafael.blogsApiPath,
+    );
+  }
+
   async deleteRafaelBlogById(blogId: string) {
     const response = await this.page.request.delete(FAMILY_MEMBERS.rafael.blogsApiPath, {
+      data: { blogId },
+    });
+    expect(response.ok()).toBeTruthy();
+    await this.page.reload({ waitUntil: "domcontentloaded" });
+  }
+
+  async publishMikhailBlog(title: string, content: string): Promise<string> {
+    return this.publishBlog(
+      this.mikhailSection(),
+      title,
+      content,
+      FAMILY_MEMBERS.mikhail.blogsApiPath,
+    );
+  }
+
+  async deleteMikhailBlogById(blogId: string) {
+    const response = await this.page.request.delete(FAMILY_MEMBERS.mikhail.blogsApiPath, {
+      data: { blogId },
+    });
+    expect(response.ok()).toBeTruthy();
+    await this.page.reload({ waitUntil: "domcontentloaded" });
+  }
+
+  async publishMiraBlog(title: string, content: string): Promise<string> {
+    return this.publishBlog(
+      this.miraSection(),
+      title,
+      content,
+      FAMILY_MEMBERS.mira.blogsApiPath,
+    );
+  }
+
+  async deleteMiraBlogById(blogId: string) {
+    const response = await this.page.request.delete(FAMILY_MEMBERS.mira.blogsApiPath, {
       data: { blogId },
     });
     expect(response.ok()).toBeTruthy();

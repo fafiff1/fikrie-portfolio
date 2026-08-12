@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isEmailConfigured()) {
+    if (!(await isEmailConfigured())) {
       return NextResponse.json(
         {
           error:
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     await saveContactMessage(payload);
 
-    const delivery = getEmailDelivery();
+    const delivery = await getEmailDelivery();
     if (!delivery) {
       return NextResponse.json(
         { error: "Email delivery is not configured." },

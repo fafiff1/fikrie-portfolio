@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, ChevronDown, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { logoutAction } from "@/app/login/actions";
@@ -35,6 +35,8 @@ const navLinks: NavLink[] = [
   { name: "Contact", href: "/contact" },
 ];
 
+const SETTINGS_HREF = "/settings";
+
 function isActivePath(pathname: string, href: string): boolean {
   if (href === "/") {
     return pathname === "/";
@@ -51,9 +53,10 @@ function isAboutSectionActive(pathname: string, link: NavLink): boolean {
 
 type NavbarProps = {
   isLoggedIn: boolean;
+  brandName?: string;
 };
 
-export default function Navbar({ isLoggedIn }: NavbarProps) {
+export default function Navbar({ isLoggedIn, brandName = "Fahreza" }: NavbarProps) {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -84,6 +87,38 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
     setMobileMenuOpen(false);
     setMobileAboutOpen(false);
   }, [pathname]);
+
+  const settingsActive = isActivePath(pathname, SETTINGS_HREF);
+
+  const renderSettingsButton = (mobile = false) => (
+    <Link
+      href={SETTINGS_HREF}
+      aria-label="Settings"
+      aria-current={settingsActive ? "page" : undefined}
+      onClick={mobile ? () => setMobileMenuOpen(false) : undefined}
+      title="Settings"
+      className={
+        mobile
+          ? `inline-flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+              settingsActive
+                ? "bg-white text-black border-primary ring-2 ring-primary/40"
+                : "bg-white text-black border-white/80 hover:border-primary hover:shadow-lg hover:shadow-primary/20"
+            }`
+          : `group relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+              settingsActive
+                ? "bg-white text-black ring-2 ring-primary shadow-lg shadow-primary/30 scale-105"
+                : "bg-white text-black border border-white/80 shadow-md shadow-black/30 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:ring-2 hover:ring-primary/40"
+            }`
+      }
+    >
+      <Settings
+        size={mobile ? 22 : 20}
+        strokeWidth={2.5}
+        className={settingsActive ? "" : "group-hover:rotate-45 transition-transform duration-300"}
+      />
+      {mobile && <span className="text-base font-semibold text-black">Settings</span>}
+    </Link>
+  );
 
   const renderDesktopLink = (link: NavLink) => {
     if (!link.children) {
@@ -217,21 +252,24 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold text-white tracking-tighter">
-          Fahreza<span className="text-primary">.</span>
+          {brandName}<span className="text-primary">.</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
           {isLoggedIn && navLinks.map(renderDesktopLink)}
           {isLoggedIn ? (
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="px-5 py-2 border border-surface-border text-gray-300 text-sm font-medium rounded hover:border-primary hover:text-white transition-colors flex items-center gap-2"
-              >
-                Logout
-                <LogOut size={16} />
-              </button>
-            </form>
+            <div className="flex items-center gap-3 ml-2 pl-2 border-l border-surface-border">
+              {renderSettingsButton()}
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 border border-surface-border text-gray-300 text-sm font-medium rounded-xl hover:border-primary hover:text-white hover:bg-surface transition-colors flex items-center gap-2"
+                >
+                  Logout
+                  <LogOut size={16} />
+                </button>
+              </form>
+            </div>
           ) : (
             <Link
               href="/login"
@@ -265,14 +303,18 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           >
             {isLoggedIn && navLinks.map(renderMobileLink)}
             {isLoggedIn ? (
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="text-lg font-medium text-gray-300 hover:text-primary transition-colors"
-                >
-                  Logout
-                </button>
-              </form>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 mt-2 border-t border-surface-border">
+                {renderSettingsButton(true)}
+                <form action={logoutAction} className="flex-1">
+                  <button
+                    type="submit"
+                    className="w-full px-5 py-3 border border-surface-border text-gray-300 text-lg font-medium rounded-xl hover:border-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+                  >
+                    Logout
+                    <LogOut size={18} />
+                  </button>
+                </form>
+              </div>
             ) : (
               <Link
                 href="/login"
