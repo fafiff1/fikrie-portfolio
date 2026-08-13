@@ -1,5 +1,5 @@
 import { expect, type Page, type Locator } from "@playwright/test";
-import { FAMILY_MEMBERS, ROUTES, TEST_USER } from "../helpers/test-data";
+import { FAMILY_MEMBERS, LIFESTYLE, ROUTES, TEST_USER } from "../helpers/test-data";
 
 export class LoginPage {
   constructor(private readonly page: Page) {}
@@ -146,7 +146,7 @@ export class FamilyPage {
       data: { blogId },
     });
     expect(response.ok()).toBeTruthy();
-    await this.page.reload({ waitUntil: "domcontentloaded" });
+    await this.goto();
   }
 
   async publishMikhailBlog(title: string, content: string): Promise<string> {
@@ -163,7 +163,7 @@ export class FamilyPage {
       data: { blogId },
     });
     expect(response.ok()).toBeTruthy();
-    await this.page.reload({ waitUntil: "domcontentloaded" });
+    await this.goto();
   }
 
   async publishMiraBlog(title: string, content: string): Promise<string> {
@@ -180,6 +180,173 @@ export class FamilyPage {
       data: { blogId },
     });
     expect(response.ok()).toBeTruthy();
-    await this.page.reload({ waitUntil: "domcontentloaded" });
+    await this.goto();
+  }
+}
+
+type LifestylePageConfig = (typeof LIFESTYLE)[keyof typeof LIFESTYLE];
+
+class LifestylePage {
+  constructor(
+    private readonly page: Page,
+    private readonly config: LifestylePageConfig,
+  ) {}
+
+  async goto() {
+    await expect(async () => {
+      await this.page.goto(this.config.path, { waitUntil: "domcontentloaded" });
+      await expect(this.page.getByRole("dialog", { name: "Runtime Error" })).not.toBeVisible();
+      await expect(this.page.getByRole("heading", { name: this.config.title, exact: true })).toBeVisible();
+      await expect(this.page.getByRole("button", { name: "Write Blog" })).toBeVisible();
+    }).toPass({ timeout: 30_000 });
+  }
+
+  private sectionTab(name: "Blog" | "Photos & Videos") {
+    return this.page
+      .locator(".flex.justify-center.mb-10")
+      .getByRole("button", { name, exact: true });
+  }
+
+  private blogArticle(title: string): Locator {
+    return this.page.getByRole("article").filter({
+      has: this.page.getByRole("heading", { name: title }),
+    });
+  }
+
+  async publishBlog(title: string, content: string): Promise<string> {
+    const writeBlog = this.page.getByRole("button", { name: "Write Blog" });
+    await expect(writeBlog).toBeVisible();
+    await expect(async () => {
+      await writeBlog.click();
+      await expect(this.page.getByRole("heading", { name: "New Blog" })).toBeVisible();
+    }).toPass();
+
+    await this.page.getByPlaceholder("My weekend hiking adventure").fill(title);
+    await this.page.getByPlaceholder("Write your blog post here...").fill(content);
+
+    const publishResponse = this.page.waitForResponse(
+      (response) =>
+        response.url().includes(this.config.blogsApiPath) &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    );
+    await this.page.getByRole("button", { name: "Publish Blog" }).click();
+    const response = await publishResponse;
+    const { blog } = (await response.json()) as { blog: { id: string } };
+
+    await expect(this.page.getByRole("heading", { name: "New Blog" })).not.toBeVisible();
+    await expect(this.blogArticle(title)).toBeVisible();
+
+    return blog.id;
+  }
+
+  async editBlog(currentTitle: string, newTitle: string, newContent: string) {
+    await this.blogArticle(currentTitle).getByRole("button", { name: `Edit ${currentTitle}` }).click();
+    await expect(this.page.getByRole("heading", { name: "Edit Blog" })).toBeVisible();
+
+    await this.page.getByPlaceholder("My weekend hiking adventure").fill(newTitle);
+    await this.page.getByPlaceholder("Write your blog post here...").fill(newContent);
+
+    const patchResponse = this.page.waitForResponse(
+      (response) =>
+        response.url().includes(this.config.blogsApiPath) &&
+        response.request().method() === "PATCH" &&
+        response.ok(),
+    );
+    await this.page.getByRole("button", { name: "Save Changes" }).click();
+    await patchResponse;
+
+    await expect(this.page.getByRole("heading", { name: "Edit Blog" })).not.toBeVisible();
+    await expect(this.blogArticle(newTitle)).toBeVisible();
+  }
+
+  async deleteBlog(title: string) {
+    this.page.once("dialog", (dialog) => dialog.accept());
+
+    const deleteResponse = this.page.waitForResponse(
+      (response) =>
+        response.url().includes(this.config.blogsApiPath) &&
+        response.request().method() === "DELETE" &&
+        response.ok(),
+    );
+    await this.blogArticle(title).getByRole("button", { name: `Delete ${title}` }).click();
+    await deleteResponse;
+
+    await expect(this.blogArticle(title)).not.toBeVisible();
+  }
+
+  async switchToMedia() {
+    const mediaTab = this.sectionTab("Photos & Videos");
+    await expect(mediaTab).toBeVisible();
+
+    if (await this.page.getByRole("button", { name: "Upload" }).isVisible()) {
+      return;
+    }
+
+    await expect(async () => {
+      await mediaTab.scrollIntoViewIfNeeded();
+      await mediaTab.click();
+      await expect(this.page.getByRole("heading", { name: "Blog", level: 3 })).not.toBeVisible();
+      await expect(this.page.getByRole("heading", { name: "Photos & Videos", level: 3 })).toBeVisible();
+      await expect(this.page.getByRole("button", { name: "Upload" })).toBeVisible();
+    }).toPass({ timeout: 20_000 });
+  }
+
+  async switchToBlog() {
+    const blogTab = this.sectionTab("Blog");
+    await expect(blogTab).toBeVisible();
+
+    if (await this.page.getByRole("button", { name: "Write Blog" }).isVisible()) {
+      return;
+    }
+
+    await expect(async () => {
+      await blogTab.scrollIntoViewIfNeeded();
+      await blogTab.click();
+      await expect(this.page.getByRole("heading", { name: "Blog", level: 3 })).toBeVisible();
+    }).toPass({ timeout: 20_000 });
+  }
+
+  async uploadPhoto(filePath: string): Promise<string> {
+    await this.switchToMedia();
+
+    const uploadResponse = this.page.waitForResponse(
+      (response) =>
+        response.url().includes(this.config.mediaApiPath) &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    );
+
+    await this.page.locator('input[type="file"].hidden').setInputFiles(filePath);
+    const response = await uploadResponse;
+    const { item } = (await response.json()) as { item: { id: string; title: string } };
+
+    await expect(this.page.getByText(item.title).first()).toBeVisible();
+    return item.id;
+  }
+
+  async deleteMediaById(mediaId: string) {
+    const response = await this.page.request.delete(this.config.mediaApiPath, {
+      data: { mediaId },
+    });
+    expect(response.ok()).toBeTruthy();
+  }
+}
+
+export class HobbiesPage extends LifestylePage {
+  constructor(page: Page) {
+    super(page, LIFESTYLE.hobbies);
+  }
+}
+
+export class SportsPage extends LifestylePage {
+  constructor(page: Page) {
+    super(page, LIFESTYLE.sports);
+  }
+}
+
+export class TravelPage extends LifestylePage {
+  constructor(page: Page) {
+    super(page, LIFESTYLE.travel);
   }
 }
