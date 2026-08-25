@@ -22,20 +22,74 @@ const DEFAULT_DATA: Record<LifestyleCategory, LifestyleSection> = {
   travel: { blogs: [], media: [] },
 };
 
-export async function readLifestyleData(): Promise<Record<LifestyleCategory, LifestyleSection>> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw) as Record<LifestyleCategory, LifestyleSection>;
-  } catch {
-    return DEFAULT_DATA;
+function normalizeLifestyleData(
+  data: Partial<Record<LifestyleCategory, LifestyleSection>>
+): Record<LifestyleCategory, LifestyleSection> {
+  return {
+    hobbies: {
+      blogs: data.hobbies?.blogs ?? [],
+      media: data.hobbies?.media ?? [],
+    },
+    sports: {
+      blogs: data.sports?.blogs ?? [],
+      media: data.sports?.media ?? [],
+    },
+    travel: {
+      blogs: data.travel?.blogs ?? [],
+      media: data.travel?.media ?? [],
+    },
+  };
+}
+
+let writeQueue: Promise<void> = Promise.resolve();
+
+async function readLifestyleDataFromDisk(): Promise<Record<LifestyleCategory, LifestyleSection>> {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const raw = await fs.readFile(DATA_FILE, "utf-8");
+      if (!raw.trim()) {
+        throw new Error("Lifestyle data file is empty.");
+      }
+
+      return normalizeLifestyleData(
+        JSON.parse(raw) as Partial<Record<LifestyleCategory, LifestyleSection>>,
+      );
+    } catch {
+      if (attempt === 2) {
+        return { ...DEFAULT_DATA };
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 15 * (attempt + 1)));
+    }
   }
+
+  return { ...DEFAULT_DATA };
+}
+
+export async function readLifestyleData(): Promise<Record<LifestyleCategory, LifestyleSection>> {
+  await writeQueue;
+  return readLifestyleDataFromDisk();
 }
 
 export async function writeLifestyleData(
   data: Record<LifestyleCategory, LifestyleSection>
 ): Promise<void> {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+  const nextWrite = writeQueue.then(async () => {
+    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
+    const payload = JSON.stringify(normalizeLifestyleData(data), null, 2);
+    const tempFile = `${DATA_FILE}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tempFile, payload, "utf-8");
+
+    try {
+      await fs.rename(tempFile, DATA_FILE);
+    } catch {
+      await fs.unlink(DATA_FILE).catch(() => undefined);
+      await fs.rename(tempFile, DATA_FILE);
+    }
+  });
+
+  writeQueue = nextWrite.catch(() => undefined);
+  await nextWrite;
 }
 
 export async function readLifestyleSection(category: LifestyleCategory): Promise<LifestyleSection> {

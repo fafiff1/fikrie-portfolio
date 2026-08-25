@@ -2,6 +2,42 @@
   "hobbies": {
     "blogs": [
       {
+        "id": "hobbies-blog-1787643866013",
+        "title": "Hobbies weekend project 1787643865908",
+        "content": "Playwright test blog for Hobbies. Creative pursuit recap 1787643865908.",
+        "createdAt": "2026-08-25T07:44:26.013Z"
+      },
+      {
+        "id": "hobbies-blog-1787643848003",
+        "title": "Hobbies weekend project 1787643847776",
+        "content": "Playwright test blog for Hobbies. Creative pursuit recap 1787643847776.",
+        "createdAt": "2026-08-25T07:44:08.003Z"
+      },
+      {
+        "id": "hobbies-blog-1787643827635",
+        "title": "Hobbies weekend project 1787643822069",
+        "content": "Playwright test blog for Hobbies. Creative pursuit recap 1787643822069.",
+        "createdAt": "2026-08-25T07:43:47.635Z"
+      },
+      {
+        "id": "hobbies-blog-1787643238989",
+        "title": "Hobbies weekend project 1787643238833",
+        "content": "Playwright test blog for Hobbies. Creative pursuit recap 1787643238833.",
+        "createdAt": "2026-08-25T07:33:58.989Z"
+      },
+      {
+        "id": "hobbies-blog-1787643220484",
+        "title": "Hobbies weekend project 1787643220166",
+        "content": "Playwright test blog for Hobbies. Creative pursuit recap 1787643220166.",
+        "createdAt": "2026-08-25T07:33:40.484Z"
+      },
+      {
+        "id": "hobbies-blog-1787643199551",
+        "title": "Hobbies weekend project 1787643192633",
+        "content": "Playwright test blog for Hobbies. Creative pursuit recap 1787643192633.",
+        "createdAt": "2026-08-25T07:33:19.551Z"
+      },
+      {
         "id": "hobbies-blog-1787628118509",
         "title": "Updated hobbies project 1787628077965",
         "content": "Updated Playwright test blog for Hobbies. Edited creative pursuit recap 1787628077965.",

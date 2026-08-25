@@ -191,9 +191,21 @@ export async function DELETE(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid category." }, { status: 400 });
   }
 
-  const { blogId } = await request.json();
+  const queryBlogId = new URL(request.url).searchParams.get("blogId");
+  let blogId = queryBlogId;
 
-  if (typeof blogId !== "string") {
+  if (!blogId) {
+    try {
+      const body = (await request.json()) as { blogId?: unknown };
+      if (typeof body.blogId === "string") {
+        blogId = body.blogId;
+      }
+    } catch {
+      // Fall through to invalid request response below.
+    }
+  }
+
+  if (!blogId) {
     return NextResponse.json({ error: "Invalid delete request." }, { status: 400 });
   }
 
@@ -201,16 +213,10 @@ export async function DELETE(request: Request, context: RouteContext) {
   const blog = allData[category].blogs.find((entry) => entry.id === blogId);
 
   if (!blog) {
-    return NextResponse.json({ error: "Blog not found." }, { status: 404 });
+    return NextResponse.json({ blogs: allData[category].blogs });
   }
 
-  if (blog.coverImage && isLocalLifestyleSrc(blog.coverImage)) {
-    try {
-      await fs.unlink(localLifestyleSrcToFilePath(blog.coverImage));
-    } catch {
-      // Cover may already be missing
-    }
-  }
+  await deleteLocalCover(blog.coverImage);
 
   allData[category].blogs = allData[category].blogs.filter((entry) => entry.id !== blogId);
   await writeLifestyleData(allData);
