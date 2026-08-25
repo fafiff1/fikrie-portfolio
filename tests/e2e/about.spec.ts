@@ -6,7 +6,7 @@ import {
   uniqueMikhailBlog,
   uniqueMiraBlog,
   uniqueRafaelBlog,
-  uniqueSportsRafaelBlog,
+  uniqueSportsBlog,
 } from "../helpers/test-data";
 
 const dummyPhotoPath = path.resolve("tests/fixtures/dummy-photo.png");
@@ -50,7 +50,7 @@ test.describe("About / Sports", () => {
   test("publishes, edits, and deletes a blog", async ({ page, authenticatedPage }) => {
     void authenticatedPage;
 
-    const blog = uniqueSportsRafaelBlog();
+    const blog = uniqueSportsBlog();
     const sportsPage = new SportsPage(page);
 
     await sportsPage.goto();

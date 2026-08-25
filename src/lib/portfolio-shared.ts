@@ -1,17 +1,14 @@
-export type PortfolioSectionId =
-  | "syncsoft"
-  | "telstra-thealth"
-  | "enett"
-  | "dws"
-  | "kmart";
+export type PortfolioSectionId = string;
 
-export const PORTFOLIO_SECTION_IDS: PortfolioSectionId[] = [
+export const PORTFOLIO_SECTION_IDS = [
   "syncsoft",
   "telstra-thealth",
   "enett",
   "dws",
   "kmart",
-];
+] as const;
+
+const SECTION_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export type PortfolioImage = {
   id: string;
@@ -36,7 +33,18 @@ export type PortfolioSection = {
 };
 
 export function isPortfolioSectionId(value: string): value is PortfolioSectionId {
-  return PORTFOLIO_SECTION_IDS.includes(value as PortfolioSectionId);
+  return value.length >= 2 && value.length <= 80 && SECTION_ID_PATTERN.test(value);
+}
+
+export function createPortfolioSectionId(company: string): PortfolioSectionId {
+  const slug =
+    company
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "section";
+
+  return `${slug}-${Date.now()}`;
 }
 
 export const DEFAULT_PORTFOLIO_SECTIONS: PortfolioSection[] = [

@@ -102,7 +102,7 @@ export function uniqueHobbiesBlog() {
   };
 }
 
-export function uniqueSportsRafaelBlog() {
+export function uniqueSportsBlog() {
   const suffix = Date.now();
 
   return {
@@ -113,7 +113,7 @@ export function uniqueSportsRafaelBlog() {
   };
 }
 
-export function uniqueTravelRafaelBlog() {
+export function uniqueTravelBlog() {
   const suffix = Date.now();
 
   return {
@@ -124,4 +124,14 @@ export function uniqueTravelRafaelBlog() {
   };
 }
 
+export function uniquePortfolioSection() {
+  const suffix = Date.now();
+
+  return {
+    company: `Acme QA ${suffix}`,
+    period: "2026 – Present",
+    role: "Senior Quality Engineer",
+    description: `Playwright test section for Portfolio. Career recap ${suffix}.`,
+  };
+}
 

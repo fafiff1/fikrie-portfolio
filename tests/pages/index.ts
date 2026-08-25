@@ -450,3 +450,88 @@ export class TravelPage extends LifestylePage {
     super(page, LIFESTYLE.travel);
   }
 }
+
+export class PortfolioPage {
+  constructor(private readonly page: Page) {}
+
+  async goto() {
+    await expect(async () => {
+      await this.page.goto(ROUTES.portfolio, { waitUntil: "domcontentloaded" });
+      await expect(this.page.getByRole("dialog", { name: "Runtime Error" })).not.toBeVisible();
+      await expect(this.page.getByRole("heading", { name: /Professional /i })).toBeVisible();
+    }).toPass({ timeout: 30_000 });
+  }
+
+  private sectionArticle(company: string): Locator {
+    return this.page.getByRole("article").filter({
+      has: this.page.getByRole("heading", { name: company }),
+    });
+  }
+
+  async addSection(company: string, description: string, period = "", role = "") {
+    await expect(async () => {
+      const heading = this.page.getByRole("heading", { name: "New Section" });
+      if (await heading.isVisible()) {
+        return;
+      }
+
+      const addButton = this.page.getByRole("button", { name: "Add Section" });
+      await expect(addButton).toBeVisible();
+      await addButton.click();
+      await expect(heading).toBeVisible({ timeout: 10_000 });
+    }).toPass({ timeout: 20_000 });
+
+    await this.page.getByPlaceholder("Company name").fill(company);
+    await this.page.getByPlaceholder("Describe this role and the work you delivered.").fill(description);
+    if (period) {
+      await this.page.getByPlaceholder("2024 – Present").fill(period);
+    }
+    if (role) {
+      await this.page.getByPlaceholder("Senior Quality Engineer").fill(role);
+    }
+
+    const createResponse = this.page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/portfolio") &&
+        !response.url().includes("/media") &&
+        response.request().method() === "POST",
+      { timeout: 15_000 },
+    );
+    await this.page.getByRole("button", { name: "Create Section" }).click();
+    const response = await createResponse;
+    expect(response.ok(), `Create section failed: ${response.status()}`).toBeTruthy();
+
+    await expect(this.page.getByRole("heading", { name: "New Section" })).not.toBeVisible();
+    await expect(this.sectionArticle(company)).toBeVisible();
+  }
+
+  async deleteSection(company: string) {
+    const acceptDialog = (dialog: Dialog) => {
+      void dialog.accept();
+    };
+    this.page.on("dialog", acceptDialog);
+
+    try {
+      await expect(async () => {
+        const article = this.sectionArticle(company);
+        if (await article.isVisible()) {
+          const deleteResponse = this.page.waitForResponse(
+            (response) =>
+              response.url().includes("/api/portfolio/") &&
+              response.request().method() === "DELETE" &&
+              !response.url().includes("/media"),
+            { timeout: 15_000 },
+          );
+          await article.getByRole("button", { name: `Delete ${company}` }).click();
+          const response = await deleteResponse;
+          expect(response.ok(), `Delete section failed: ${response.status()}`).toBeTruthy();
+        }
+
+        await expect(article).not.toBeVisible();
+      }).toPass({ timeout: 20_000 });
+    } finally {
+      this.page.off("dialog", acceptDialog);
+    }
+  }
+}
+

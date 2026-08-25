@@ -18,6 +18,7 @@ type PortfolioSectionCardProps = {
   index: number;
   isLoggedIn: boolean;
   onSectionChange: (section: PortfolioSection) => void;
+  onSectionDelete: (sectionId: string) => void;
 };
 
 export default function PortfolioSectionCard({
@@ -25,12 +26,14 @@ export default function PortfolioSectionCard({
   index,
   isLoggedIn,
   onSectionChange,
+  onSectionDelete,
 }: PortfolioSectionCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingSection, setDeletingSection] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -148,6 +151,30 @@ export default function PortfolioSectionCard({
     }
   };
 
+  const handleDeleteSection = async () => {
+    if (!confirm(`Delete section "${section.company}"?`)) return;
+
+    setDeletingSection(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/portfolio/${section.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete section.");
+      }
+
+      onSectionDelete(section.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete section.");
+    } finally {
+      setDeletingSection(false);
+    }
+  };
+
   const updateClient = (clientId: string, field: "name" | "description", value: string) => {
     setClients((prev) =>
       prev.map((client) => (client.id === clientId ? { ...client, [field]: value } : client))
@@ -195,13 +222,28 @@ export default function PortfolioSectionCard({
             </div>
 
             {isLoggedIn && !editing && (
-              <button
-                onClick={startEdit}
-                className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2 self-start"
-              >
-                <Pencil size={16} />
-                Edit Section
-              </button>
+              <div className="flex flex-wrap gap-2 self-start">
+                <button
+                  onClick={startEdit}
+                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Pencil size={16} />
+                  Edit Section
+                </button>
+                <button
+                  onClick={handleDeleteSection}
+                  disabled={deletingSection}
+                  className="px-4 py-2 bg-transparent border border-surface-border text-white text-sm font-medium rounded-lg hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 transition-colors flex items-center gap-2 disabled:opacity-60"
+                  aria-label={`Delete ${section.company}`}
+                >
+                  {deletingSection ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                  Delete
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth-session";
 import {
+  deletePortfolioSectionMedia,
   isPortfolioSectionId,
   readPortfolioSections,
   writePortfolioSections,
@@ -72,4 +73,29 @@ export async function PATCH(request: Request, context: RouteContext) {
   await writePortfolioSections(sections);
 
   return NextResponse.json({ section: sections[index], sections });
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const sectionId = await getSectionId(context);
+  if (!sectionId) {
+    return NextResponse.json({ error: "Invalid section." }, { status: 400 });
+  }
+
+  const sections = await readPortfolioSections();
+  const existing = sections.find((section) => section.id === sectionId);
+
+  if (!existing) {
+    return NextResponse.json({ sections });
+  }
+
+  await deletePortfolioSectionMedia(sectionId);
+
+  const nextSections = sections.filter((section) => section.id !== sectionId);
+  await writePortfolioSections(nextSections);
+
+  return NextResponse.json({ sections: nextSections });
 }
