@@ -1,6 +1,31 @@
 {
-  "rafael": [],
+  "rafael": [
+    {
+      "id": "rafael-blog-1787636362308",
+      "title": "Rafael soccer recap 1787636362076",
+      "content": "Playwright test blog for Rafael. U12 Glen Waverley training session recap 1787636362076.",
+      "createdAt": "2026-08-25T05:39:22.308Z"
+    },
+    {
+      "id": "rafael-blog-1787636237666",
+      "title": "Rafael soccer recap 1787636229218",
+      "content": "Playwright test blog for Rafael. U12 Glen Waverley training session recap 1787636229218.",
+      "createdAt": "2026-08-25T05:37:17.666Z"
+    },
+    {
+      "id": "rafael-blog-1787635515361",
+      "title": "Updated Rafael soccer recap 1787635515053",
+      "content": "Updated Playwright test blog for Rafael. Edited U12 Glen Waverley recap 1787635515053.",
+      "createdAt": "2026-08-25T05:25:15.361Z"
+    }
+  ],
   "mikhail": [
+    {
+      "id": "mikhail-blog-1787629707903",
+      "title": "Mikhail basketball recap 1787629701418",
+      "content": "Playwright test blog for Mikhail. U10 Glen Waverley training session recap 1787629701418.",
+      "createdAt": "2026-08-25T03:48:27.903Z"
+    },
     {
       "id": "mikhail-blog-1785906724734",
       "title": "Mikhail basketball recap 1785906717427",

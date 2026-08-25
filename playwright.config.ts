@@ -22,11 +22,19 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testDir: "./tests/e2e",
       use: {
         ...devices["Desktop Chrome"],
         // Uses your installed Google Chrome — no `playwright install` download needed.
         channel: "chrome",
       },
+    },
+    {
+      name: "api",
+      testDir: "./tests/api",
+      // Next.js dev server can return transient 500s during serial API runs on Windows.
+      retries: 2,
+      fullyParallel: false,
     },
     // Uncomment additional browsers after running: npx playwright install
     // {

@@ -1,6 +1,13 @@
 {
   "hobbies": {
-    "blogs": [],
+    "blogs": [
+      {
+        "id": "hobbies-blog-1787628118509",
+        "title": "Updated hobbies project 1787628077965",
+        "content": "Updated Playwright test blog for Hobbies. Edited creative pursuit recap 1787628077965.",
+        "createdAt": "2026-08-25T03:21:58.509Z"
+      }
+    ],
     "media": []
   },
   "sports": {

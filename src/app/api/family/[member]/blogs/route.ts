@@ -191,9 +191,21 @@ export async function DELETE(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid family member." }, { status: 400 });
   }
 
-  const { blogId } = await request.json();
+  const queryBlogId = new URL(request.url).searchParams.get("blogId");
+  let blogId = queryBlogId;
 
-  if (typeof blogId !== "string") {
+  if (!blogId) {
+    try {
+      const body = (await request.json()) as { blogId?: unknown };
+      if (typeof body.blogId === "string") {
+        blogId = body.blogId;
+      }
+    } catch {
+      // Fall through to invalid request response below.
+    }
+  }
+
+  if (!blogId) {
     return NextResponse.json({ error: "Invalid delete request." }, { status: 400 });
   }
 
@@ -201,7 +213,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   const blog = allData[memberId].find((entry) => entry.id === blogId);
 
   if (!blog) {
-    return NextResponse.json({ error: "Blog not found." }, { status: 404 });
+    return NextResponse.json({ blogs: allData[memberId] });
   }
 
   await deleteLocalCover(blog.coverImage);

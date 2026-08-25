@@ -17,20 +17,65 @@ const DEFAULT_DATA: Record<FamilyMemberId, BlogPost[]> = {
   mira: [],
 };
 
-export async function readFamilyBlogs(): Promise<Record<FamilyMemberId, BlogPost[]>> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw) as Record<FamilyMemberId, BlogPost[]>;
-  } catch {
-    return DEFAULT_DATA;
+function normalizeFamilyBlogs(
+  data: Partial<Record<FamilyMemberId, BlogPost[]>>
+): Record<FamilyMemberId, BlogPost[]> {
+  return {
+    rafael: data.rafael ?? [],
+    mikhail: data.mikhail ?? [],
+    mira: data.mira ?? [],
+  };
+}
+
+let writeQueue: Promise<void> = Promise.resolve();
+
+async function readFamilyBlogsFromDisk(): Promise<Record<FamilyMemberId, BlogPost[]>> {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const raw = await fs.readFile(DATA_FILE, "utf-8");
+      if (!raw.trim()) {
+        throw new Error("Family blogs file is empty.");
+      }
+
+      return normalizeFamilyBlogs(
+        JSON.parse(raw) as Partial<Record<FamilyMemberId, BlogPost[]>>,
+      );
+    } catch {
+      if (attempt === 2) {
+        return { ...DEFAULT_DATA };
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 15 * (attempt + 1)));
+    }
   }
+
+  return { ...DEFAULT_DATA };
+}
+
+export async function readFamilyBlogs(): Promise<Record<FamilyMemberId, BlogPost[]>> {
+  await writeQueue;
+  return readFamilyBlogsFromDisk();
 }
 
 export async function writeFamilyBlogs(
   data: Record<FamilyMemberId, BlogPost[]>
 ): Promise<void> {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+  const nextWrite = writeQueue.then(async () => {
+    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
+    const payload = JSON.stringify(normalizeFamilyBlogs(data), null, 2);
+    const tempFile = `${DATA_FILE}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tempFile, payload, "utf-8");
+
+    try {
+      await fs.rename(tempFile, DATA_FILE);
+    } catch {
+      await fs.unlink(DATA_FILE).catch(() => undefined);
+      await fs.rename(tempFile, DATA_FILE);
+    }
+  });
+
+  writeQueue = nextWrite.catch(() => undefined);
+  await nextWrite;
 }
 
 export async function readMemberBlogs(memberId: FamilyMemberId): Promise<BlogPost[]> {

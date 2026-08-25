@@ -1,4 +1,4 @@
-import { expect, type Page, type Locator } from "@playwright/test";
+import { expect, type Dialog, type Locator, type Page, type Response } from "@playwright/test";
 import { FAMILY_MEMBERS, LIFESTYLE, ROUTES, TEST_USER } from "../helpers/test-data";
 
 export class LoginPage {
@@ -113,14 +113,7 @@ export class FamilyPage {
     content: string,
     blogsApiPath: string,
   ): Promise<string> {
-    await section.scrollIntoViewIfNeeded();
-
-    const writeBlog = section.getByRole("button", { name: "Write Blog" });
-    await expect(writeBlog).toBeVisible();
-    await expect(async () => {
-      await writeBlog.click();
-      await expect(section.getByRole("heading", { name: "New Blog" })).toBeVisible();
-    }).toPass();
+    await this.openNewBlogForm(section);
 
     await section.getByPlaceholder("My weekend hiking adventure").fill(title);
     await section.getByPlaceholder("Write your blog post here...").fill(content);
@@ -151,11 +144,15 @@ export class FamilyPage {
   }
 
   async deleteRafaelBlogById(blogId: string) {
-    const response = await this.page.request.delete(FAMILY_MEMBERS.rafael.blogsApiPath, {
-      data: { blogId },
-    });
-    expect(response.ok()).toBeTruthy();
-    await this.goto();
+    await this.deleteBlogById(FAMILY_MEMBERS.rafael.blogsApiPath, blogId);
+  }
+
+  async deleteRafaelBlog(title: string) {
+    await this.deleteBlogInSection(
+      this.rafaelSection(),
+      title,
+      FAMILY_MEMBERS.rafael.blogsApiPath,
+    );
   }
 
   async publishMikhailBlog(title: string, content: string): Promise<string> {
@@ -168,11 +165,7 @@ export class FamilyPage {
   }
 
   async deleteMikhailBlogById(blogId: string) {
-    const response = await this.page.request.delete(FAMILY_MEMBERS.mikhail.blogsApiPath, {
-      data: { blogId },
-    });
-    expect(response.ok()).toBeTruthy();
-    await this.goto();
+    await this.deleteBlogById(FAMILY_MEMBERS.mikhail.blogsApiPath, blogId);
   }
 
   async publishMiraBlog(title: string, content: string): Promise<string> {
@@ -185,10 +178,71 @@ export class FamilyPage {
   }
 
   async deleteMiraBlogById(blogId: string) {
-    const response = await this.page.request.delete(FAMILY_MEMBERS.mira.blogsApiPath, {
-      data: { blogId },
-    });
-    expect(response.ok()).toBeTruthy();
+    await this.deleteBlogById(FAMILY_MEMBERS.mira.blogsApiPath, blogId);
+  }
+
+  private async openNewBlogForm(section: Locator) {
+    const blogTab = section.getByRole("button", { name: "Blog", exact: true });
+    if (await blogTab.isVisible()) {
+      await blogTab.click();
+    }
+
+    await section.scrollIntoViewIfNeeded();
+
+    await expect(async () => {
+      const newBlog = section.getByRole("heading", { name: "New Blog" });
+      if (await newBlog.isVisible()) {
+        return;
+      }
+
+      const writeBlog = section.getByRole("button", { name: "Write Blog" });
+      await expect(writeBlog).toBeVisible();
+      await writeBlog.click();
+      await expect(newBlog).toBeVisible({ timeout: 10_000 });
+    }).toPass({ timeout: 20_000 });
+  }
+
+  private async deleteBlogInSection(section: Locator, title: string, blogsApiPath: string) {
+    const acceptDialog = (dialog: Dialog) => {
+      void dialog.accept();
+    };
+    this.page.on("dialog", acceptDialog);
+
+    try {
+      await expect(async () => {
+        const article = section.getByRole("article").filter({
+          has: this.page.getByRole("heading", { name: title }),
+        });
+        if (await article.isVisible()) {
+          const deleteResponse = this.page.waitForResponse(
+            (response) =>
+              response.url().includes(blogsApiPath) &&
+              response.request().method() === "DELETE",
+            { timeout: 15_000 },
+          );
+          await article.getByRole("button", { name: `Delete ${title}` }).click();
+          const response = await deleteResponse;
+          expect(response.ok(), `Family blog delete failed: ${response.status()}`).toBeTruthy();
+        }
+
+        await expect(article).not.toBeVisible();
+      }).toPass({ timeout: 20_000 });
+    } finally {
+      this.page.off("dialog", acceptDialog);
+    }
+  }
+
+  private async deleteBlogById(blogsApiPath: string, blogId: string) {
+    await expect(async () => {
+      const response = await this.page.request.delete(blogsApiPath, {
+        data: { blogId },
+      });
+      expect(
+        response.ok(),
+        `Family blog delete failed: ${response.status()}`,
+      ).toBeTruthy();
+    }).toPass({ timeout: 15_000 });
+
     await this.goto();
   }
 }
@@ -223,24 +277,22 @@ class LifestylePage {
   }
 
   async publishBlog(title: string, content: string): Promise<string> {
-    const writeBlog = this.page.getByRole("button", { name: "Write Blog" });
-    await expect(writeBlog).toBeVisible();
     await expect(async () => {
+      const newBlog = this.page.getByRole("heading", { name: "New Blog" });
+      if (await newBlog.isVisible()) {
+        return;
+      }
+
+      const writeBlog = this.page.getByRole("button", { name: "Write Blog" });
+      await expect(writeBlog).toBeVisible();
       await writeBlog.click();
-      await expect(this.page.getByRole("heading", { name: "New Blog" })).toBeVisible();
-    }).toPass();
+      await expect(newBlog).toBeVisible({ timeout: 10_000 });
+    }).toPass({ timeout: 20_000 });
 
     await this.page.getByPlaceholder("My weekend hiking adventure").fill(title);
     await this.page.getByPlaceholder("Write your blog post here...").fill(content);
 
-    const publishResponse = this.page.waitForResponse(
-      (response) =>
-        response.url().includes(this.config.blogsApiPath) &&
-        response.request().method() === "POST" &&
-        response.ok(),
-    );
-    await this.page.getByRole("button", { name: "Publish Blog" }).click();
-    const response = await publishResponse;
+    const response = await this.submitBlogForm("POST", "Publish Blog");
     const { blog } = (await response.json()) as { blog: { id: string } };
 
     await expect(this.page.getByRole("heading", { name: "New Blog" })).not.toBeVisible();
@@ -250,38 +302,77 @@ class LifestylePage {
   }
 
   async editBlog(currentTitle: string, newTitle: string, newContent: string) {
-    await this.blogArticle(currentTitle).getByRole("button", { name: `Edit ${currentTitle}` }).click();
-    await expect(this.page.getByRole("heading", { name: "Edit Blog" })).toBeVisible();
+    const editButton = this.blogArticle(currentTitle).getByRole("button", {
+      name: `Edit ${currentTitle}`,
+    });
+    await expect(async () => {
+      await editButton.click();
+      await expect(this.page.getByRole("heading", { name: "Edit Blog" })).toBeVisible();
+    }).toPass();
 
     await this.page.getByPlaceholder("My weekend hiking adventure").fill(newTitle);
     await this.page.getByPlaceholder("Write your blog post here...").fill(newContent);
 
-    const patchResponse = this.page.waitForResponse(
-      (response) =>
-        response.url().includes(this.config.blogsApiPath) &&
-        response.request().method() === "PATCH" &&
-        response.ok(),
-    );
-    await this.page.getByRole("button", { name: "Save Changes" }).click();
-    await patchResponse;
-
+    await this.submitBlogForm("PATCH", "Save Changes");
     await expect(this.page.getByRole("heading", { name: "Edit Blog" })).not.toBeVisible();
+
     await expect(this.blogArticle(newTitle)).toBeVisible();
   }
 
   async deleteBlog(title: string) {
-    this.page.once("dialog", (dialog) => dialog.accept());
+    const acceptDialog = (dialog: Dialog) => {
+      void dialog.accept();
+    };
+    this.page.on("dialog", acceptDialog);
 
-    const deleteResponse = this.page.waitForResponse(
-      (response) =>
-        response.url().includes(this.config.blogsApiPath) &&
-        response.request().method() === "DELETE" &&
-        response.ok(),
-    );
-    await this.blogArticle(title).getByRole("button", { name: `Delete ${title}` }).click();
-    await deleteResponse;
+    try {
+      await expect(async () => {
+        const article = this.blogArticle(title);
+        if (await article.isVisible()) {
+          const deleteResponse = this.page.waitForResponse(
+            (response) =>
+              response.url().includes(this.config.blogsApiPath) &&
+              response.request().method() === "DELETE",
+            { timeout: 15_000 },
+          );
+          await article.getByRole("button", { name: `Delete ${title}` }).click();
+          const response = await deleteResponse;
+          expect(response.ok(), `Blog delete failed: ${response.status()}`).toBeTruthy();
+        }
 
-    await expect(this.blogArticle(title)).not.toBeVisible();
+        await expect(article).not.toBeVisible();
+      }).toPass({ timeout: 20_000 });
+    } finally {
+      this.page.off("dialog", acceptDialog);
+    }
+  }
+
+  private async submitBlogForm(method: "POST" | "PATCH", buttonName: string) {
+    let submitted: Response | null = null;
+
+    await expect(async () => {
+      const button = this.page.getByRole("button", { name: buttonName });
+      if (!(await button.isVisible())) {
+        return;
+      }
+
+      const pending = this.page.waitForResponse(
+        (response) =>
+          response.url().includes(this.config.blogsApiPath) &&
+          response.request().method() === method,
+        { timeout: 15_000 },
+      );
+      await button.click();
+      const response = await pending;
+      expect(response.ok(), `Blog ${method} failed: ${response.status()}`).toBeTruthy();
+      submitted = response;
+    }).toPass({ timeout: 20_000 });
+
+    if (!submitted) {
+      throw new Error(`Blog ${method} did not complete.`);
+    }
+
+    return submitted;
   }
 
   async switchToMedia() {

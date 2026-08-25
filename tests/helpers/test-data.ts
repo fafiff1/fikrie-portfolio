@@ -64,6 +64,8 @@ export function uniqueRafaelBlog() {
   return {
     title: `Rafael soccer recap ${suffix}`,
     content: `Playwright test blog for Rafael. U12 Glen Waverley training session recap ${suffix}.`,
+    updatedTitle: `Updated Rafael soccer recap ${suffix}`,
+    updatedContent: `Updated Playwright test blog for Rafael. Edited U12 Glen Waverley recap ${suffix}.`,
   };
 }
 
@@ -73,6 +75,8 @@ export function uniqueMikhailBlog() {
   return {
     title: `Mikhail basketball recap ${suffix}`,
     content: `Playwright test blog for Mikhail. U10 Glen Waverley training session recap ${suffix}.`,
+    updatedTitle: `Updated Mikhail basketball recap ${suffix}`,
+    updatedContent: `Updated Playwright test blog for Mikhail. Edited U10 Glen Waverley recap ${suffix}.`,
   };
 }
 
@@ -82,6 +86,8 @@ export function uniqueMiraBlog() {
   return {
     title: `Mira soccer recap ${suffix}`,
     content: `Playwright test blog for Mira. U36 Glen Waverley training session recap ${suffix}.`,
+    updatedTitle: `Updated Mira soccer recap ${suffix}`,
+    updatedContent: `Updated Playwright test blog for Mira. Edited U36 Glen Waverley recap ${suffix}.`,
   };
 }
 
