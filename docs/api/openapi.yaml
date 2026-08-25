@@ -112,7 +112,10 @@ components:
         company: { type: string }
         content: { type: string }
         image: { type: string }
-      required: [id, name, role, company, content, image]
+        audience:
+          type: string
+          enum: [manager, tech-lead, developer, project-manager, client]
+      required: [id, name, role, company, content, image, audience]
 
     SiteContent:
       type: object
@@ -126,8 +129,26 @@ components:
             bio: { type: string }
             location: { type: string }
             profileImage: { type: string }
-            badgeValue: { type: string }
-            badgeLabel: { type: string }
+            metrics:
+              type: array
+              items:
+                type: object
+                properties:
+                  value: { type: string }
+                  label: { type: string }
+        technology:
+          type: object
+          properties:
+            intro: { type: string }
+            groups:
+              type: array
+              items:
+                type: object
+                properties:
+                  title: { type: string }
+                  items:
+                    type: array
+                    items: { type: string }
         about:
           type: object
           properties:
@@ -611,7 +632,7 @@ paths:
   /api/settings/reviews:
     get:
       tags: [Settings]
-      summary: List client reviews
+      summary: List testimonials
       responses:
         '200':
           content:
@@ -624,7 +645,7 @@ paths:
                     items: { $ref: '#/components/schemas/Review' }
     post:
       tags: [Settings]
-      summary: Add a client review
+      summary: Add a testimonial
       security: [{ sessionCookie: [] }]
       requestBody:
         content:
@@ -635,6 +656,7 @@ paths:
                 name: { type: string, minLength: 2 }
                 role: { type: string }
                 company: { type: string }
+                audience: { type: string, enum: [manager, tech-lead, developer, project-manager, client] }
                 content: { type: string, minLength: 10 }
                 image: { type: string, format: binary }
                 imageUrl: { type: string }
@@ -644,7 +666,7 @@ paths:
         '401': { description: Unauthorized }
     patch:
       tags: [Settings]
-      summary: Update a client review
+      summary: Update a testimonial
       security: [{ sessionCookie: [] }]
       requestBody:
         content:
@@ -665,7 +687,7 @@ paths:
         '401': { description: Unauthorized }
     delete:
       tags: [Settings]
-      summary: Delete a client review
+      summary: Delete a testimonial
       security: [{ sessionCookie: [] }]
       requestBody:
         content:

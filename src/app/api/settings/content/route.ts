@@ -16,7 +16,15 @@ export async function PATCH(request: Request) {
   const current = await readSiteContent();
 
   const content: SiteContent = {
-    hero: { ...current.hero, ...body.hero },
+    hero: {
+      ...current.hero,
+      ...body.hero,
+      metrics: body.hero?.metrics?.length ? body.hero.metrics : current.hero.metrics,
+    },
+    technology: {
+      intro: body.technology?.intro ?? current.technology.intro,
+      groups: body.technology?.groups?.length ? body.technology.groups : current.technology.groups,
+    },
     about: {
       intro: body.about?.intro ?? current.about.intro,
       stats: body.about?.stats?.length ? body.about.stats : current.about.stats,

@@ -24,12 +24,12 @@ const navLinks: NavLink[] = [
     name: "About",
     href: "/about",
     children: [
+      { name: "Family", href: "/about/family" },
       { name: "Hobbies", href: "/about/hobbies" },
       { name: "Sports", href: "/about/sports" },
       { name: "Travel", href: "/about/travel" },
     ],
   },
-  { name: "Family", href: "/family" },
   { name: "Portfolio", href: "/portfolio" },
   { name: "Reviews", href: "/reviews" },
   { name: "Contact", href: "/contact" },

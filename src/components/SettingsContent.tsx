@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import type { SiteContent } from "@/lib/site-content-shared";
 import type { SiteConfig } from "@/lib/site-config-shared";
-import type { Review } from "@/lib/reviews-shared";
+import { REVIEW_AUDIENCE_LABELS, REVIEW_AUDIENCES, type Review, type ReviewAudience } from "@/lib/reviews-shared";
 
 type SettingsTab = "content" | "images" | "sections" | "account" | "site";
 
@@ -77,10 +77,10 @@ const tabs: { id: SettingsTab; label: string; icon: React.ReactNode; description
 ];
 
 const sectionLinks = [
-  { name: "Family", href: "/family", note: "Edit member bios, blogs, and media on the page." },
+  { name: "Family", href: "/about/family", note: "Edit member bios, blogs, and media on the page." },
   { name: "Portfolio", href: "/portfolio", note: "Edit career sections and project images on the page." },
   { name: "About Lifestyle", href: "/about/hobbies", note: "Manage hobbies, sports, and travel content." },
-  { name: "Reviews", href: "/reviews", note: "Preview client reviews after editing them here." },
+  { name: "Reviews", href: "/reviews", note: "Preview testimonials after editing them here." },
 ];
 
 export default function SettingsContent({
@@ -109,6 +109,7 @@ export default function SettingsContent({
     name: string;
     role: string;
     company: string;
+    audience: ReviewAudience;
     content: string;
     imageUrl: string;
     imageFile: File | null;
@@ -117,6 +118,7 @@ export default function SettingsContent({
     name: "",
     role: "",
     company: "",
+    audience: "client",
     content: "",
     imageUrl: "",
     imageFile: null,
@@ -234,6 +236,7 @@ export default function SettingsContent({
       name: "",
       role: "",
       company: "",
+      audience: "client",
       content: "",
       imageUrl: "",
       imageFile: null,
@@ -249,6 +252,7 @@ export default function SettingsContent({
     formData.append("name", reviewForm.name);
     formData.append("role", reviewForm.role);
     formData.append("company", reviewForm.company);
+    formData.append("audience", reviewForm.audience);
     formData.append("content", reviewForm.content);
     if (reviewForm.imageFile) formData.append("image", reviewForm.imageFile);
     if (reviewForm.imageUrl) formData.append("imageUrl", reviewForm.imageUrl);
@@ -305,6 +309,35 @@ export default function SettingsContent({
         stats: prev.about.stats.map((stat, statIndex) =>
           statIndex === index ? { ...stat, [field]: value } : stat
         ),
+      },
+    }));
+  };
+
+  const updateMetric = (index: number, field: "value" | "label", value: string) => {
+    setContent((prev) => ({
+      ...prev,
+      hero: {
+        ...prev.hero,
+        metrics: prev.hero.metrics.map((metric, metricIndex) =>
+          metricIndex === index ? { ...metric, [field]: value } : metric
+        ),
+      },
+    }));
+  };
+
+  const updateTechnologyGroup = (index: number, field: "title" | "items", value: string) => {
+    setContent((prev) => ({
+      ...prev,
+      technology: {
+        ...prev.technology,
+        groups: prev.technology.groups.map((group, groupIndex) => {
+          if (groupIndex !== index) return group;
+          if (field === "title") return { ...group, title: value };
+          return {
+            ...group,
+            items: value.split("\n").map((item) => item.trim()).filter(Boolean),
+          };
+        }),
       },
     }));
   };
@@ -379,10 +412,29 @@ export default function SettingsContent({
                     <Field label="Name" value={content.hero.name} onChange={(value) => setContent((prev) => ({ ...prev, hero: { ...prev.hero, name: value } }))} />
                     <Field label="Headline" value={content.hero.headline} onChange={(value) => setContent((prev) => ({ ...prev, hero: { ...prev.hero, headline: value } }))} />
                     <Field label="Location" value={content.hero.location} onChange={(value) => setContent((prev) => ({ ...prev, hero: { ...prev.hero, location: value } }))} />
-                    <Field label="Badge value" value={content.hero.badgeValue} onChange={(value) => setContent((prev) => ({ ...prev, hero: { ...prev.hero, badgeValue: value } }))} />
-                    <Field label="Badge label" value={content.hero.badgeLabel} onChange={(value) => setContent((prev) => ({ ...prev, hero: { ...prev.hero, badgeLabel: value } }))} />
                   </div>
                   <TextArea label="Hero bio" value={content.hero.bio} onChange={(value) => setContent((prev) => ({ ...prev, hero: { ...prev.hero, bio: value } }))} />
+                  <div className="grid md:grid-cols-2 gap-4 mt-4">
+                    {content.hero.metrics.map((metric, index) => (
+                      <div key={index} className="bg-black border border-surface-border rounded-xl p-4 space-y-3">
+                        <Field label={`Metric ${index + 1} value`} value={metric.value} onChange={(value) => updateMetric(index, "value", value)} />
+                        <Field label={`Metric ${index + 1} label`} value={metric.label} onChange={(value) => updateMetric(index, "label", value)} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Technology</h2>
+                  <TextArea label="Technology intro" value={content.technology.intro} onChange={(value) => setContent((prev) => ({ ...prev, technology: { ...prev.technology, intro: value } }))} />
+                  <div className="grid md:grid-cols-2 gap-4 mt-4">
+                    {content.technology.groups.map((group, index) => (
+                      <div key={index} className="bg-black border border-surface-border rounded-xl p-4 space-y-3">
+                        <Field label={`Group ${index + 1} title`} value={group.title} onChange={(value) => updateTechnologyGroup(index, "title", value)} />
+                        <TextArea label="Items (one per line)" value={group.items.join("\n")} onChange={(value) => updateTechnologyGroup(index, "items", value)} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -450,13 +502,29 @@ export default function SettingsContent({
             {activeTab === "sections" && (
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Client Reviews</h2>
-                  <p className="text-gray-400 mb-6">Add, edit, or remove review cards shown on the Reviews page.</p>
+                  <h2 className="text-2xl font-bold text-white mb-2">Testimonials</h2>
+                  <p className="text-gray-400 mb-6">
+                    Edit or remove published testimonials here. New posts use the single form on the{" "}
+                    <Link href="/reviews" className="text-primary hover:underline">Reviews</Link> page.
+                  </p>
 
+                  {reviewForm.id && (
                   <form onSubmit={saveReview} className="bg-black border border-surface-border rounded-xl p-5 space-y-4 mb-6">
-                    <h3 className="font-bold text-white">{reviewForm.id ? "Edit Review" : "Add Review"}</h3>
+                    <h3 className="font-bold text-white">Edit Testimonial</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       <Field label="Name" value={reviewForm.name} onChange={(value) => setReviewForm((prev) => ({ ...prev, name: value }))} />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Audience</label>
+                        <select
+                          value={reviewForm.audience}
+                          onChange={(event) => setReviewForm((prev) => ({ ...prev, audience: event.target.value as ReviewAudience }))}
+                          className="w-full bg-black border border-surface-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary"
+                        >
+                          {REVIEW_AUDIENCES.map((audience) => (
+                            <option key={audience} value={audience}>{REVIEW_AUDIENCE_LABELS[audience]}</option>
+                          ))}
+                        </select>
+                      </div>
                       <Field label="Role" value={reviewForm.role} onChange={(value) => setReviewForm((prev) => ({ ...prev, role: value }))} />
                       <Field label="Company" value={reviewForm.company} onChange={(value) => setReviewForm((prev) => ({ ...prev, company: value }))} />
                       <Field label="Image URL (optional if uploading)" value={reviewForm.imageUrl} onChange={(value) => setReviewForm((prev) => ({ ...prev, imageUrl: value }))} />
@@ -464,14 +532,13 @@ export default function SettingsContent({
                     <TextArea label="Review content" value={reviewForm.content} onChange={(value) => setReviewForm((prev) => ({ ...prev, content: value }))} />
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => setReviewForm((prev) => ({ ...prev, imageFile: e.target.files?.[0] || null }))} className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer" />
                     <div className="flex gap-3">
-                      <SaveButton saving={saving} label={reviewForm.id ? "Update Review" : "Add Review"} />
-                      {reviewForm.id && (
-                        <button type="button" onClick={resetReviewForm} className="px-6 py-3 border border-surface-border text-white rounded-lg hover:bg-black transition-colors">
-                          Cancel
-                        </button>
-                      )}
+                      <SaveButton saving={saving} label="Update Testimonial" />
+                      <button type="button" onClick={resetReviewForm} className="px-6 py-3 border border-surface-border text-white rounded-lg hover:bg-black transition-colors">
+                        Cancel
+                      </button>
                     </div>
                   </form>
+                  )}
 
                   <div className="space-y-4">
                     {reviews.map((review) => (
@@ -479,11 +546,11 @@ export default function SettingsContent({
                         <img src={review.image} alt={review.name} className="w-16 h-16 rounded-full object-cover border border-surface-border" />
                         <div className="flex-1">
                           <h4 className="font-bold text-white">{review.name}</h4>
-                          <p className="text-sm text-gray-400">{review.role} at {review.company}</p>
+                          <p className="text-sm text-gray-400">{REVIEW_AUDIENCE_LABELS[review.audience]} · {[review.role, review.company].filter(Boolean).join(" at ")}</p>
                           <p className="text-sm text-gray-300 mt-2 line-clamp-2">{review.content}</p>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => setReviewForm({ id: review.id, name: review.name, role: review.role, company: review.company, content: review.content, imageUrl: review.image, imageFile: null })} className="w-9 h-9 rounded-full border border-surface-border flex items-center justify-center text-gray-300 hover:text-white hover:border-primary">
+                          <button onClick={() => setReviewForm({ id: review.id, name: review.name, role: review.role, company: review.company, audience: review.audience, content: review.content, imageUrl: review.image, imageFile: null })} className="w-9 h-9 rounded-full border border-surface-border flex items-center justify-center text-gray-300 hover:text-white hover:border-primary">
                             <Pencil size={16} />
                           </button>
                           <button onClick={() => deleteReview(review.id)} className="w-9 h-9 rounded-full border border-surface-border flex items-center justify-center text-gray-300 hover:text-white hover:border-primary">

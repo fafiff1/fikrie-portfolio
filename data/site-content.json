@@ -6,8 +6,24 @@
     "bio": "Originally from Jakarta, Indonesia, now calling Melbourne home for over 20 years. I ensure software excellence while being a proud husband and father.",
     "location": "Based in Melbourne, Australia",
     "profileImage": "/profile/fikrie-profile-sketch.png",
-    "badgeValue": "20+",
-    "badgeLabel": "Years in Melbourne"
+    "metrics": [
+      {
+        "value": "14+",
+        "label": "Years in Software"
+      },
+      {
+        "value": "5",
+        "label": "Employers"
+      },
+      {
+        "value": "7+",
+        "label": "Systems Tested"
+      },
+      {
+        "value": "20+",
+        "label": "Years in Melbourne"
+      }
+    ]
   },
   "about": {
     "intro": "I'm a dedicated Quality Engineer with a passion for delivering flawless software experiences. My journey started in Jakarta, but for over two decades, Melbourne has been my home. When I'm not ensuring software quality, I'm spending time with my beautiful wife Mira and our two boys, Rafael and Mikhail.",
@@ -25,8 +41,8 @@
         "desc": "Quality Engineer"
       },
       {
-        "title": "Experience",
-        "desc": "20+ Years in Melbourne"
+        "title": "Career",
+        "desc": "Software quality since 2012"
       }
     ]
   },
@@ -53,5 +69,44 @@
   },
   "footer": {
     "copyrightName": "Fahreza"
+  },
+  "technology": {
+    "intro": "Grouped by how I work \u2014 not a wall of logos. These are the tools I use to design, automate, and prove software quality.",
+    "groups": [
+      {
+        "title": "Testing",
+        "items": [
+          "Playwright",
+          "Selenium",
+          "JMeter",
+          "REST Assured"
+        ]
+      },
+      {
+        "title": "Development",
+        "items": [
+          "Java",
+          "Python",
+          "JavaScript / TypeScript",
+          "SQL"
+        ]
+      },
+      {
+        "title": "Cloud & DevOps",
+        "items": [
+          "AWS",
+          "Docker",
+          "GitHub Actions",
+          "CI/CD"
+        ]
+      },
+      {
+        "title": "Databases",
+        "items": [
+          "PostgreSQL",
+          "MySQL"
+        ]
+      }
+    ]
   }
 }

@@ -3,6 +3,16 @@ export type AboutStat = {
   desc: string;
 };
 
+export type ImpactMetric = {
+  value: string;
+  label: string;
+};
+
+export type TechnologyGroup = {
+  title: string;
+  items: string[];
+};
+
 export type SiteContent = {
   hero: {
     roleBadge: string;
@@ -11,8 +21,11 @@ export type SiteContent = {
     bio: string;
     location: string;
     profileImage: string;
-    badgeValue: string;
-    badgeLabel: string;
+    metrics: ImpactMetric[];
+  };
+  technology: {
+    intro: string;
+    groups: TechnologyGroup[];
   };
   about: {
     intro: string;
@@ -48,8 +61,34 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     bio: "Originally from Jakarta, Indonesia, now calling Melbourne home for over 20 years. I ensure software excellence while being a proud husband and father.",
     location: "Based in Melbourne, Australia",
     profileImage: "/profile/fikrie-profile-sketch.png",
-    badgeValue: "20+",
-    badgeLabel: "Years in Melbourne",
+    metrics: [
+      { value: "14+", label: "Years in Software" },
+      { value: "5", label: "Employers" },
+      { value: "7+", label: "Systems Tested" },
+      { value: "20+", label: "Years in Melbourne" },
+    ],
+  },
+  technology: {
+    intro:
+      "Grouped by how I work — not a wall of logos. These are the tools I use to design, automate, and prove software quality.",
+    groups: [
+      {
+        title: "Testing",
+        items: ["Playwright", "Selenium", "JMeter", "REST Assured"],
+      },
+      {
+        title: "Development",
+        items: ["Java", "Python", "JavaScript / TypeScript", "SQL"],
+      },
+      {
+        title: "Cloud & DevOps",
+        items: ["AWS", "Docker", "GitHub Actions", "CI/CD"],
+      },
+      {
+        title: "Databases",
+        items: ["PostgreSQL", "MySQL"],
+      },
+    ],
   },
   about: {
     intro:
@@ -58,7 +97,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       { title: "Roots", desc: "Jakarta, Indonesia" },
       { title: "Family", desc: "Wife Mira, sons Rafael & Mikhail" },
       { title: "Role", desc: "Quality Engineer" },
-      { title: "Experience", desc: "20+ Years in Melbourne" },
+      { title: "Career", desc: "Software quality since 2012" },
     ],
   },
   contact: {

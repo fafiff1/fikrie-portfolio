@@ -1,10 +1,10 @@
-import Testimonials from "@/components/Testimonials";
 import PageLayout from "@/components/PageLayout";
+import ReviewsPageContent from "@/components/ReviewsPageContent";
 import { readReviews } from "@/lib/reviews";
 
 export const metadata = {
-  title: "Reviews | Fahreza Portfolio",
-  description: "Client reviews and testimonials for Fahreza.",
+  title: "Testimonials | Fahreza Portfolio",
+  description: "Testimonials from managers, tech leads, developers, project managers, and clients.",
 };
 
 export default async function ReviewsPage() {
@@ -12,7 +12,7 @@ export default async function ReviewsPage() {
 
   return (
     <PageLayout>
-      <Testimonials reviews={reviews} />
+      <ReviewsPageContent initialReviews={reviews} />
     </PageLayout>
   );
 }

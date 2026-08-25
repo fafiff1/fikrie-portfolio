@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { DEFAULT_SITE_CONTENT, type SiteContent } from "@/lib/site-content-shared";
 
-export type { AboutStat, SiteContent } from "@/lib/site-content-shared";
+export type { AboutStat, ImpactMetric, SiteContent, TechnologyGroup } from "@/lib/site-content-shared";
 export { DEFAULT_SITE_CONTENT } from "@/lib/site-content-shared";
 
 const DATA_FILE = path.join(process.cwd(), "data", "site-content.json");
@@ -19,7 +19,19 @@ export async function readSiteContent(): Promise<SiteContent> {
 
 function mergeSiteContent(partial: Partial<SiteContent>): SiteContent {
   return {
-    hero: { ...DEFAULT_SITE_CONTENT.hero, ...partial.hero },
+    hero: {
+      ...DEFAULT_SITE_CONTENT.hero,
+      ...partial.hero,
+      metrics: partial.hero?.metrics?.length
+        ? partial.hero.metrics
+        : DEFAULT_SITE_CONTENT.hero.metrics,
+    },
+    technology: {
+      intro: partial.technology?.intro ?? DEFAULT_SITE_CONTENT.technology.intro,
+      groups: partial.technology?.groups?.length
+        ? partial.technology.groups
+        : DEFAULT_SITE_CONTENT.technology.groups,
+    },
     about: {
       intro: partial.about?.intro ?? DEFAULT_SITE_CONTENT.about.intro,
       stats: partial.about?.stats?.length ? partial.about.stats : DEFAULT_SITE_CONTENT.about.stats,

@@ -1,3 +1,21 @@
+export const REVIEW_AUDIENCES = [
+  "manager",
+  "tech-lead",
+  "developer",
+  "project-manager",
+  "client",
+] as const;
+
+export type ReviewAudience = (typeof REVIEW_AUDIENCES)[number];
+
+export const REVIEW_AUDIENCE_LABELS: Record<ReviewAudience, string> = {
+  manager: "Manager",
+  "tech-lead": "Tech Lead",
+  developer: "Developer",
+  "project-manager": "Project Manager",
+  client: "Client",
+};
+
 export type Review = {
   id: string;
   name: string;
@@ -5,7 +23,12 @@ export type Review = {
   company: string;
   content: string;
   image: string;
+  audience: ReviewAudience;
 };
+
+export function isReviewAudience(value: string): value is ReviewAudience {
+  return REVIEW_AUDIENCES.includes(value as ReviewAudience);
+}
 
 export const DEFAULT_REVIEWS: Review[] = [
   {
@@ -13,6 +36,7 @@ export const DEFAULT_REVIEWS: Review[] = [
     name: "Sarah Jenkins",
     role: "Product Manager",
     company: "TechFlow",
+    audience: "project-manager",
     content:
       "Fahreza's attention to detail is unmatched. He caught edge cases we hadn't even considered. A true quality champion.",
     image:
@@ -23,6 +47,7 @@ export const DEFAULT_REVIEWS: Review[] = [
     name: "David Chen",
     role: "Lead Developer",
     company: "InnovateX",
+    audience: "tech-lead",
     content:
       "Working with Fahreza gave our team immense confidence in our releases. His automated testing frameworks saved us countless hours.",
     image:
@@ -33,6 +58,7 @@ export const DEFAULT_REVIEWS: Review[] = [
     name: "Emma Williams",
     role: "CTO",
     company: "BuildRight",
+    audience: "manager",
     content:
       "Fahreza brings a rare combination of technical depth and strategic thinking to quality engineering. Highly recommended.",
     image:

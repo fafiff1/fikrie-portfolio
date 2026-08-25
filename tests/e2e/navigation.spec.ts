@@ -12,8 +12,9 @@ test.describe("Authenticated navigation", () => {
     const navbar = new Navbar(page);
     await navbar.expectLoggedIn();
     await expect(page.getByRole("banner").getByRole("link", { name: "About", exact: true })).toBeVisible();
-    await expect(page.getByRole("banner").getByRole("link", { name: "Family", exact: true })).toBeVisible();
     await expect(page.getByRole("banner").getByRole("link", { name: "Contact", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Technology" })).toBeVisible();
+    await expect(page.getByText("Years in Software")).toBeVisible();
   });
 
   test("navigates to family page", async ({ page, authenticatedPage }) => {
@@ -21,7 +22,7 @@ test.describe("Authenticated navigation", () => {
     await goHome(page);
     const navbar = new Navbar(page);
 
-    await navbar.goTo("Family");
+    await navbar.goToAboutChild("Family");
     await expect(page).toHaveURL(ROUTES.family);
     await expect(page.getByRole("heading", { name: /Meet My/i })).toBeVisible();
   });
@@ -53,7 +54,7 @@ test.describe("Authenticated navigation", () => {
 
     await navbar.goTo("Reviews");
     await expect(page).toHaveURL(ROUTES.reviews);
-    await expect(page.getByRole("heading", { name: /Client /i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Testimonials/i })).toBeVisible();
   });
 
   test("navigates to portfolio page", async ({ page, authenticatedPage }) => {

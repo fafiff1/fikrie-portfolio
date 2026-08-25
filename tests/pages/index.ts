@@ -58,6 +58,15 @@ export class Navbar {
     await expect(link).toBeVisible();
     await link.click();
   }
+
+  async goToAboutChild(childName: string) {
+    const about = this.page.getByRole("banner").getByRole("link", { name: "About", exact: true });
+    await expect(about).toBeVisible();
+    await about.hover();
+    const child = this.page.getByRole("banner").getByRole("link", { name: childName, exact: true });
+    await expect(child).toBeVisible();
+    await child.click();
+  }
 }
 
 export async function goHome(page: Page) {

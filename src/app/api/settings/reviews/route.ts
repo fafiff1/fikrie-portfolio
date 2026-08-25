@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
-import path from "path";
 import { isAuthenticated } from "@/lib/auth-session";
 import {
-  getReviewMediaDir,
+  addReview,
   isLocalReviewSrc,
+  isReviewAudience,
   localReviewSrcToFilePath,
   readReviews,
+  saveReviewImage,
   writeReviews,
-  type Review,
 } from "@/lib/reviews";
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function GET() {
   const reviews = await readReviews();
@@ -25,15 +22,25 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
+  if (typeof formData.get("website") === "string" && formData.get("website")) {
+    const reviews = await readReviews();
+    return NextResponse.json({ success: true, reviews });
+  }
+
   const name = formData.get("name");
   const role = formData.get("role");
   const company = formData.get("company");
   const content = formData.get("content");
+  const audienceValue = formData.get("audience");
   const image = formData.get("image");
   const imageUrl = formData.get("imageUrl");
 
   if (typeof name !== "string" || name.trim().length < 2) {
     return NextResponse.json({ error: "Please enter a reviewer name." }, { status: 400 });
+  }
+
+  if (typeof audienceValue !== "string" || !isReviewAudience(audienceValue)) {
+    return NextResponse.json({ error: "Please choose an audience." }, { status: 400 });
   }
 
   if (typeof content !== "string" || content.trim().length < 10) {
@@ -43,39 +50,22 @@ export async function POST(request: Request) {
   let imageSrc = typeof imageUrl === "string" ? imageUrl.trim() : "";
 
   if (image instanceof File && image.size > 0) {
-    if (image.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "Image exceeds 10MB limit." }, { status: 400 });
+    try {
+      imageSrc = await saveReviewImage(image);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not save image.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
-
-    if (!IMAGE_TYPES.includes(image.type)) {
-      return NextResponse.json({ error: "Unsupported image type." }, { status: 400 });
-    }
-
-    const ext = path.extname(image.name) || ".jpg";
-    const filename = `review_${Date.now()}${ext}`;
-    const mediaDir = getReviewMediaDir();
-    await fs.mkdir(mediaDir, { recursive: true });
-    const buffer = Buffer.from(await image.arrayBuffer());
-    await fs.writeFile(path.join(mediaDir, filename), buffer);
-    imageSrc = `/reviews/${filename}`;
   }
 
-  if (!imageSrc) {
-    return NextResponse.json({ error: "Please provide an image or image URL." }, { status: 400 });
-  }
-
-  const review: Review = {
-    id: `review-${Date.now()}`,
+  const { review, reviews } = await addReview({
     name: name.trim(),
     role: typeof role === "string" ? role.trim() : "",
     company: typeof company === "string" ? company.trim() : "",
     content: content.trim(),
+    audience: audienceValue,
     image: imageSrc,
-  };
-
-  const reviews = await readReviews();
-  reviews.unshift(review);
-  await writeReviews(reviews);
+  });
 
   return NextResponse.json({ review, reviews });
 }
@@ -108,22 +98,15 @@ export async function PATCH(request: Request) {
   const existing = reviews[index];
   let imageSrc = existing.image;
 
+  const audienceValue = formData.get("audience");
+
   if (image instanceof File && image.size > 0) {
-    if (image.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "Image exceeds 10MB limit." }, { status: 400 });
+    try {
+      imageSrc = await saveReviewImage(image);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not save image.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
-
-    if (!IMAGE_TYPES.includes(image.type)) {
-      return NextResponse.json({ error: "Unsupported image type." }, { status: 400 });
-    }
-
-    const ext = path.extname(image.name) || ".jpg";
-    const filename = `review_${Date.now()}${ext}`;
-    const mediaDir = getReviewMediaDir();
-    await fs.mkdir(mediaDir, { recursive: true });
-    const buffer = Buffer.from(await image.arrayBuffer());
-    await fs.writeFile(path.join(mediaDir, filename), buffer);
-    imageSrc = `/reviews/${filename}`;
 
     if (isLocalReviewSrc(existing.image)) {
       try {
@@ -142,6 +125,9 @@ export async function PATCH(request: Request) {
     role: typeof role === "string" ? role.trim() : existing.role,
     company: typeof company === "string" ? company.trim() : existing.company,
     content: typeof content === "string" ? content.trim() : existing.content,
+    audience: typeof audienceValue === "string" && isReviewAudience(audienceValue)
+      ? audienceValue
+      : existing.audience,
     image: imageSrc,
   };
 
