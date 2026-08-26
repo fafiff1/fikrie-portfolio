@@ -86,7 +86,16 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { memberId, mediaId } = await request.json();
+  let memberId: unknown;
+  let mediaId: unknown;
+
+  try {
+    const body = (await request.json()) as { memberId?: unknown; mediaId?: unknown };
+    memberId = body.memberId;
+    mediaId = body.mediaId;
+  } catch {
+    return NextResponse.json({ error: "Invalid delete request." }, { status: 400 });
+  }
 
   if (typeof memberId !== "string" || !isFamilyMemberId(memberId) || typeof mediaId !== "string") {
     return NextResponse.json({ error: "Invalid delete request." }, { status: 400 });

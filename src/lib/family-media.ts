@@ -15,22 +15,73 @@ export const FAMILY_MEMBER_IDS: FamilyMemberId[] = ["rafael", "mikhail", "mira"]
 
 const DATA_FILE = path.join(process.cwd(), "data", "family-media.json");
 
+const DEFAULT_DATA: Record<FamilyMemberId, MediaItem[]> = {
+  rafael: [],
+  mikhail: [],
+  mira: [],
+};
+
 export function isFamilyMemberId(value: string): value is FamilyMemberId {
   return FAMILY_MEMBER_IDS.includes(value as FamilyMemberId);
 }
 
-export async function readFamilyMedia(): Promise<Record<FamilyMemberId, MediaItem[]>> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw) as Record<FamilyMemberId, MediaItem[]>;
-  } catch {
-    return { rafael: [], mikhail: [], mira: [] };
+function normalizeFamilyMedia(
+  data: Partial<Record<FamilyMemberId, MediaItem[]>>
+): Record<FamilyMemberId, MediaItem[]> {
+  return {
+    rafael: data.rafael ?? [],
+    mikhail: data.mikhail ?? [],
+    mira: data.mira ?? [],
+  };
+}
+
+let writeQueue: Promise<void> = Promise.resolve();
+
+async function readFamilyMediaFromDisk(): Promise<Record<FamilyMemberId, MediaItem[]>> {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const raw = await fs.readFile(DATA_FILE, "utf-8");
+      if (!raw.trim()) {
+        throw new Error("Family media file is empty.");
+      }
+
+      return normalizeFamilyMedia(
+        JSON.parse(raw) as Partial<Record<FamilyMemberId, MediaItem[]>>,
+      );
+    } catch {
+      if (attempt === 2) {
+        return { ...DEFAULT_DATA };
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 15 * (attempt + 1)));
+    }
   }
+
+  return { ...DEFAULT_DATA };
+}
+
+export async function readFamilyMedia(): Promise<Record<FamilyMemberId, MediaItem[]>> {
+  await writeQueue;
+  return readFamilyMediaFromDisk();
 }
 
 export async function writeFamilyMedia(data: Record<FamilyMemberId, MediaItem[]>): Promise<void> {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+  const nextWrite = writeQueue.then(async () => {
+    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
+    const payload = JSON.stringify(normalizeFamilyMedia(data), null, 2);
+    const tempFile = `${DATA_FILE}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tempFile, payload, "utf-8");
+
+    try {
+      await fs.rename(tempFile, DATA_FILE);
+    } catch {
+      await fs.unlink(DATA_FILE).catch(() => undefined);
+      await fs.rename(tempFile, DATA_FILE);
+    }
+  });
+
+  writeQueue = nextWrite.catch(() => undefined);
+  await nextWrite;
 }
 
 export function getMemberMediaDir(memberId: FamilyMemberId): string {

@@ -45,18 +45,31 @@ export const FAMILY_MEMBERS = {
     id: "rafael",
     name: "Rafael",
     blogsApiPath: "/api/family/rafael/blogs",
+    mediaApiPath: "/api/family/media",
   },
   mikhail: {
     id: "mikhail",
     name: "Mikhail",
     blogsApiPath: "/api/family/mikhail/blogs",
+    mediaApiPath: "/api/family/media",
   },
   mira: {
     id: "mira",
     name: "Mira",
     blogsApiPath: "/api/family/mira/blogs",
+    mediaApiPath: "/api/family/media",
   },
 } as const;
+
+export const FAMILY_MEDIA_API_PATH = "/api/family/media";
+
+export function uniqueRafaelMedia() {
+  const suffix = Date.now();
+
+  return {
+    title: `Rafael training photo ${suffix}`,
+  };
+}
 
 export function uniqueRafaelBlog() {
   const suffix = Date.now();
@@ -69,6 +82,14 @@ export function uniqueRafaelBlog() {
   };
 }
 
+export function uniqueMikhailMedia() {
+  const suffix = Date.now();
+
+  return {
+    title: `Mikhail training photo ${suffix}`,
+  };
+}
+
 export function uniqueMikhailBlog() {
   const suffix = Date.now();
 
@@ -77,6 +98,14 @@ export function uniqueMikhailBlog() {
     content: `Playwright test blog for Mikhail. U10 Glen Waverley training session recap ${suffix}.`,
     updatedTitle: `Updated Mikhail basketball recap ${suffix}`,
     updatedContent: `Updated Playwright test blog for Mikhail. Edited U10 Glen Waverley recap ${suffix}.`,
+  };
+}
+
+export function uniqueMiraMedia() {
+  const suffix = Date.now();
+
+  return {
+    title: `Mira training photo ${suffix}`,
   };
 }
 
